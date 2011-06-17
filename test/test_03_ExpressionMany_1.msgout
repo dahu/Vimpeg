@@ -1,0 +1,3 @@
+
+[['cats'], ['dogs'], ['dogs'], ['cats'], ['cats']] == [['cats'], ['dogs'], ['dogs'], ['cats'], ['cats']]
+[['raining'], [['cats'], ['dogs'], ['cats']], ['tonight']] == [['raining'], [['cats'], ['dogs'], ['cats']], ['tonight']]
