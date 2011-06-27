@@ -23,7 +23,7 @@ call       p.and(['atom'   , p.e('\*') , 'prod'   ], {'id': 'mul'    , 'on_match
 call       p.and(['atom'   , p.e('\/') , 'prod'   ], {'id': 'div'    , 'on_match': 'Div'  })
 call       p.and([p.e('(') , 'calc'     , p.e(')')], {'id': 'ncalc'  , 'on_match': 'NCalc'})
 call        p.or(['num'    , 'ncalc'              ], {'id': 'atom'                        })
-call         p.e('\d\+'                            , {'id': 'num'    , 'on_match': 'Num'  })
+call         p.e('[0-9]\+'                            , {'id': 'num'    , 'on_match': 'Num'  })
 
 " ex functions called on successful match of element (grammar provider library side)
 
@@ -40,12 +40,13 @@ func! Div(elems)
   return a:elems[0][0] / a:elems[2][0]
 endfunc
 func! Num(elem)
-  return str2nr(a:elem[0])
+  return str2nr(a:elem)
 endfunc
 func! NCalc(elem)
   return a:elem[1][0]
 endfunc
 func! Calc(expr)
+  "return string(g:calc.match(a:expr))
   return string(g:calc.match(a:expr)['value'][0])
 endfunc
 

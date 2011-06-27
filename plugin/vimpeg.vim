@@ -83,7 +83,6 @@ function! Vimpeg()
       if self.verbose
         echo "Failed at byte " . a:input.pos . " while looking for /" . self.pat . "/"
       endif
-      "TODO: prove this logic right
       let ends = [a:input.pos,a:input.pos]
       let is_matched = 0
     end
@@ -133,7 +132,8 @@ function! Vimpeg()
     " TODO: should this be -1 or 0?
     let pos = -1
     for s in self.seq
-      let e = self.GetSym(s)
+      let e = copy(self.GetSym(s))
+      let e.elements = []
       let m = e.pmatch(a:input)
       if !m['is_matched']
         let is_matched = 0
@@ -168,13 +168,15 @@ function! Vimpeg()
     " TODO: -1 or 0?
     let pos = -1
     for c in self.choices
-      let e = self.GetSym(c)
+      let e = copy(self.GetSym(c))
+      let e.elements = []
       let m = e.pmatch(a:input)
       if m['is_matched']
         let element = m
         let is_matched = 1
         break
       endif
+      unlet c
     endfor
     if is_matched
       let pos = element['pos']
@@ -189,7 +191,7 @@ function! Vimpeg()
   let peg.ExpressionMany = copy(peg.Expression) "{{{2
   func! peg.ExpressionMany.new(exp, min, max, ...) dict
     let e = self.Copy(a:0 ? a:000[0] : {})
-    let e.exp = a:exp
+    let e.exp = copy(a:exp)
     let e.min = a:min
     let e.max = a:max
     if e.id != ''
@@ -199,12 +201,11 @@ function! Vimpeg()
   endfunc
   func! peg.ExpressionMany.matcher(input) dict "{{{3
     let is_matched = 1
-    let pos = -1
-    let m = {}
-    "let n = [0,0]
+    let pos = a:input['pos']
     let cnt = 0
     let elements = []
-    let e = self.GetSym(self.exp)
+    let e = copy(self.GetSym(self.exp))
+    let e.elements = []
     let m = e.pmatch(a:input)
     while m['is_matched']
       call add(elements, m)
@@ -213,7 +214,7 @@ function! Vimpeg()
       if (self.max != 0) && (cnt >= self.max)
         break
       endif
-      let m = self.exp.pmatch(a:input)
+      let m = e.pmatch(a:input)
     endwhile
     if cnt < self.min
       " TODO: this should be an error
@@ -223,10 +224,12 @@ function! Vimpeg()
       let is_matched = 0
     endif
     if is_matched
-      let pos = elements[-1]['pos']
-      let self.value = map(copy(elements), 'v:val["value"]')
-      if has_key(self, 'on_match')
-        let self.value = [call(self.on_match, [self.value])]
+      if cnt != 0
+        let pos = elements[-1]['pos']
+        let self.value = map(copy(elements), 'v:val["value"]')
+        if has_key(self, 'on_match')
+          let self.value = [call(self.on_match, [self.value])]
+        endif
       endif
     endif
     return {'id': self.id, 'elements': elements, 'pos': pos, 'count': cnt, 'min': self.min, 'max': self.max, 'value': self.value, 'is_matched': is_matched}
@@ -245,7 +248,8 @@ function! Vimpeg()
   func! peg.ExpressionPredicate.matcher(input) dict "{{{3
     let is_matched = 0
     let pos = a:input.pos
-    let e = self.GetSym(self.exp)
+    let e = copy(self.GetSym(self.exp))
+    let e.elements = []
     let element = e.pmatch(a:input)
     let a:input.pos = pos
     if self.type == 'has'         " AND predicate
