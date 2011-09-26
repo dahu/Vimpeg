@@ -23,7 +23,7 @@ call       p.and(['atom'   , p.e('\*') , 'prod'   ], {'id': 'mul'    , 'on_match
 call       p.and(['atom'   , p.e('\/') , 'prod'   ], {'id': 'div'    , 'on_match': 'Div'  })
 call       p.and([p.e('(') , 'calc'     , p.e(')')], {'id': 'ncalc'  , 'on_match': 'NCalc'})
 call        p.or(['num'    , 'ncalc'              ], {'id': 'atom'                        })
-call         p.e('[0-9]\+'                            , {'id': 'num'    , 'on_match': 'Num'  })
+call         p.e('\d\+'                            , {'id': 'num'    , 'on_match': 'Num'  })
 
 " ex functions called on successful match of element (grammar provider library side)
 
