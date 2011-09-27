@@ -15,8 +15,9 @@
 " * There are a bunch of TODO statements littering the code - they need doing
 "   too. :)
 
-function! Vimpeg()
+function! Vimpeg(options)
   let peg = {}
+  let peg.optSkipWhite = 0
   let peg.Symbols = {}
   let peg.Expression = {}
   let peg.Expression.parent = peg
@@ -24,6 +25,10 @@ function! Vimpeg()
   let peg.Expression.id = ''
   let peg.Expression.debug = 0
   let peg.Expression.verbose = 0
+
+  if has_key(a:options, 'skip_white')
+    let peg.optSkipWhite = a:options['skip_white']
+  endif
 
   func peg.Expression.AddSym(symbol) dict "{{{2
     let symbol = a:symbol
@@ -95,8 +100,10 @@ function! Vimpeg()
     return {'id' : self.id, 'pattern' : self.pat, 'ends' : ends, 'pos': ends[1], 'value' : self.value, 'is_matched': is_matched}
   endfunc
   func peg.Expression.skip_white(input) dict "{{{3
-    if match(a:input.str, '\s\+', a:input.pos) == a:input.pos
-      let a:input.pos = matchend(a:input.str, '\s\+', a:input.pos)
+    if self.parent.optSkipWhite == 1
+      if match(a:input.str, '\s\+', a:input.pos) == a:input.pos
+        let a:input.pos = matchend(a:input.str, '\s\+', a:input.pos)
+      endif
     endif
   endfunc
   func peg.Expression.match(input) dict
