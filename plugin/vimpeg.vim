@@ -30,6 +30,32 @@ function! Vimpeg(options)
     let peg.optSkipWhite = a:options['skip_white']
   endif
 
+  func peg.GetSym(id) dict
+    let id = a:id
+    if type(id) == type("")
+      if !has_key(self.Symbols, id)
+        echoerr "Error: GetSym() : Symbol " . id . " is undefined."
+      else
+        return self.Symbols[id]
+      endif
+    elseif type(id) == type({})
+      return id
+    else
+      echoerr "Error: GetSym() : Unknown id type: " . type(id)
+    endif
+  endfunc
+
+  func peg.AddSym(symbol) dict
+    let symbol = a:symbol
+    " TODO: For now, don't allow symbol redefinition. May reverse this later.
+    if !has_key(self.Symbols, symbol['id'])
+      let self.Symbols[symbol['id']] = symbol
+      return symbol
+    else
+      echoerr "Error: AddSym() : Symbol " . symbol['id'] . " already defined."
+    endif
+  endfunc
+
   func peg.Expression.AddSym(symbol) dict "{{{2
     let symbol = a:symbol
     " TODO: For now, don't allow symbol redefinition. May reverse this later.
@@ -40,6 +66,7 @@ function! Vimpeg(options)
       echoerr "Error: AddSym() : Symbol " . symbol['id'] . " already defined."
     endif
   endfunc
+
   func peg.Expression.GetSym(id) dict
     let id = a:id
     if type(id) == type("")
