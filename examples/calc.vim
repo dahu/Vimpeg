@@ -1,5 +1,5 @@
 so ../plugin/vimpeg.vim
-let p = Vimpeg()
+let p = Vimpeg({'skip_white': 1})
 
 " Simple Calculator Grammar, Rooted at 'calc'
 
@@ -47,7 +47,7 @@ func! NCalc(elem)
 endfunc
 func! Calc(expr)
   "return string(g:calc.match(a:expr))
-  return string(g:calc.match(a:expr)['value'][0])
+  return g:calc.match(a:expr)['value'][0]
 endfunc
 
 " client side

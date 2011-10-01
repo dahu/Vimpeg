@@ -1,5 +1,5 @@
 so ../plugin/vimpeg.vim
-let p = Vimpeg()
+let p = Vimpeg({'skip_white': 1})
 
 " Sparkupy grammar for Vim maps
 " NOTE: This is only a demonstration of the parser, not a viable
@@ -107,7 +107,7 @@ endfunc
 nnoremap <leader>x :call setline('.', SVM(getline('.')))<CR>
 
 " tests - uncomment 'finish' to run tests
-finish
+
 echo 'abc'                                     . ' == ' . SparkupVimMap('"abc"')
 echo '<PageUp><PageDown>'                      . ' == ' . SparkupVimMap('pupd')
 echo '<Leader>x'                               . ' == ' . SparkupVimMap('xx_x')
