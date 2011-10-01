@@ -115,7 +115,7 @@ endfunc
 
 func! FCall(elems)
   "echo "FCall: " . string(a:elems)
-  return a:elems
+  return "let r = " . a:elems[0][0] . "({'a':'2'})"
 endfunc
 
 func! VFunc(elems)
@@ -125,11 +125,12 @@ endfunc
 
 func! Vigor(expr)
   "return g:vigor.match(a:expr)['value'][0]
-  "return g:vigor.match(a:expr)['value'][0]
   let res = g:vigor.match(a:expr)
   if res['is_matched']
-    exec string(res['value'][0])
-  else
+    let r = ''
+    exec res['value'][0]
+    return r
+  "else
     "echo res['errmsg']
   endif
 endfunc
