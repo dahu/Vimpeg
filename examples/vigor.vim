@@ -116,7 +116,12 @@ endfunc
 func! FCall(elems)
   "echo "FCall: " . string(a:elems)
   let fargs = {}
+  let avals = a:elems[1][0][0]
   call map(a:elems[1][0][1], 'extend(fargs, v:val)')
+  call filter(avals, 'has_key(fargs, v:val) == 0')
+  if len(avals) > 0
+    call extend(fargs, {'b': avals[0]})
+  endif
   return "let r = " . a:elems[0][0] . "(" . string(fargs) . ")"
 endfunc
 
@@ -143,7 +148,7 @@ endfunc
 echo Vigor("Pow = (a, b: 10) ->\n  let x = a * b\n  return x")
 echo Vigor("Pow(a: 2)")
 echo Vigor("Pow(a: 3, b: 8)")
-"echo Vigor("Pow(b: 8)")         " <--- uncomment this to see what a Vigor/VimL error looks like (a is a mandatory arg)
+echo Vigor("Pow(a: 8, 2)")
 
 " The resulting VimL function should be callable from VimL as:
 "   echo Pow({'a': 2, 'b': 3})
