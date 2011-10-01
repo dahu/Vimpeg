@@ -125,13 +125,20 @@ endfunc
 
 func! Vigor(expr)
   "return g:vigor.match(a:expr)['value'][0]
-  return g:vigor.match(a:expr)['value'][0]
+  "return g:vigor.match(a:expr)['value'][0]
+  let res = g:vigor.match(a:expr)
+  if res['is_matched']
+    exec string(res['value'][0])
+  else
+    "echo res['errmsg']
+  endif
 endfunc
 
 " client side
 
 " The power() function, defaulting to powers of 10
 echo Vigor("Pow = (a, b: 10) ->\n  let x = a * b\n  return x")
+echo Vigor("Pow(a: 2)")
 
 " The resulting VimL function should be callable from VimL as:
 "   echo Pow({'a': 2, 'b': 3})
