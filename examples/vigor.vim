@@ -115,7 +115,9 @@ endfunc
 
 func! FCall(elems)
   "echo "FCall: " . string(a:elems)
-  return "let r = " . a:elems[0][0] . "({'a':'2'})"
+  let fargs = {}
+  call map(a:elems[1][0][1], 'extend(fargs, v:val)')
+  return "let r = " . a:elems[0][0] . "(" . string(fargs) . ")"
 endfunc
 
 func! VFunc(elems)
@@ -140,6 +142,8 @@ endfunc
 " The power() function, defaulting to powers of 10
 echo Vigor("Pow = (a, b: 10) ->\n  let x = a * b\n  return x")
 echo Vigor("Pow(a: 2)")
+echo Vigor("Pow(a: 3, b: 8)")
+"echo Vigor("Pow(b: 8)")         " <--- uncomment this to see what a Vigor/VimL error looks like (a is a mandatory arg)
 
 " The resulting VimL function should be callable from VimL as:
 "   echo Pow({'a': 2, 'b': 3})
