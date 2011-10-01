@@ -1,11 +1,9 @@
-" http://pastebin.com/xdbJ51q5
 " Assignment Expression PEG
 " Barry Arthur, Jun 2011
 
 source ../plugin/vimpeg.vim
-let p = Vimpeg()
+let p = Vimpeg({'skip_white': 1})
 
-"http://pastebin.com/anE5m37A
 "Grammar for Jack Crenshaw's Assignment Expression Parser (Part 3):
   "<assignment>  ::=  <name> = <expression>
   "<expression>  ::=  <term> ( <add> | <subtract> )*
@@ -23,7 +21,6 @@ let p = Vimpeg()
   "<number>      ::=  <digit>+
   "<digit>       ::=  [0-9]
 
-"http://pastebin.com/S5XLq9SP
 let ass = p.and(['name', p.e('='), 'expression'],                               {'id': 'assignment', 'on_match': 'Assignment'})
 call      p.and(['term', p.maybe_many(p.or(['add', 'subtract']))],              {'id': 'expression', 'on_match': 'Expression'})
 call      p.and([p.e('-'), 'term'],                                             {'id': 'subtract',   'on_match': 'Op'})

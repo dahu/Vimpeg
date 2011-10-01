@@ -57,39 +57,21 @@ function! Vimpeg(options)
   endfunc
 
   func peg.Expression.AddSym(symbol) dict "{{{2
-    let symbol = a:symbol
-    " TODO: For now, don't allow symbol redefinition. May reverse this later.
-    if !has_key(self.parent.Symbols, symbol['id'])
-      let self.parent.Symbols[symbol['id']] = symbol
-      return symbol
-    else
-      echoerr "Error: AddSym() : Symbol " . symbol['id'] . " already defined."
-    endif
+    return self.parent.AddSym(a:symbol)
   endfunc
 
-  func peg.Expression.GetSym(id) dict
-    let id = a:id
-    if type(id) == type("")
-      if !has_key(self.parent.Symbols, id)
-        echoerr "Error: GetSym() : Symbol " . id . " is undefined."
-      else
-        return self.parent.Symbols[id]
-      endif
-    elseif type(id) == type({})
-      return id
-    else
-      echoerr "Error: GetSym() : Unknown id type: " . type(id)
-    endif
+  func peg.Expression.GetSym(id) dict "{{{2
+    return self.parent.GetSym(a:id)
   endfunc
 
-  func peg.Expression.SetOptions(options) dict
+  func peg.Expression.SetOptions(options) dict "{{{2
     for o in ['id', 'debug', 'verbose', 'on_match']
       if has_key(a:options, o)
         exe "let self." . o . " = a:options['" . o . "']"
       endif
     endfor
   endfunc
-  func peg.Expression.Copy(...) dict
+  func peg.Expression.Copy(...) dict "{{{2
     let e = copy(self)
     if a:0
       call e.SetOptions(a:000[0])
@@ -107,13 +89,15 @@ function! Vimpeg(options)
     return e
   endfunc
   func peg.Expression.matcher(input) dict "{{{3
+    let errmsg = ''
     let is_matched = 1
     let ends = [0,0]
     let ends[0] = match(a:input.str, self.pat, a:input.pos)
     let ends[1] = matchend(a:input.str, self.pat, a:input.pos)
     if ends[0] != a:input.pos
+      let errmsg = "Failed to match /". self.pat . "/ at byte " . a:input.pos
       if self.verbose
-        echo "Failed at byte " . a:input.pos . " while looking for /" . self.pat . "/"
+        echoerr errmsg
       endif
       let ends = [a:input.pos,a:input.pos]
       let is_matched = 0
@@ -124,7 +108,7 @@ function! Vimpeg(options)
         let self.value = [call(self.on_match, [self.value[0]])]
       endif
     endif
-    return {'id' : self.id, 'pattern' : self.pat, 'ends' : ends, 'pos': ends[1], 'value' : self.value, 'is_matched': is_matched}
+    return {'id' : self.id, 'pattern' : self.pat, 'ends' : ends, 'pos': ends[1], 'value' : self.value, 'is_matched': is_matched, 'errmsg': errmsg}
   endfunc
   func peg.Expression.skip_white(input) dict "{{{3
     if self.parent.optSkipWhite == 1
@@ -133,7 +117,7 @@ function! Vimpeg(options)
       endif
     endif
   endfunc
-  func peg.Expression.match(input) dict
+  func peg.Expression.match(input) dict "{{{3
     let self.value = []
     return self.pmatch({'str': a:input, 'pos': 0})
   endfunc
