@@ -17,7 +17,6 @@ let expression   =  q.or(['sum', 'integer'], {'id': 'expression'})
 
 function! Parse(str)
   let res = g:expression.match(a:str)
-  "echo res
   if res['is_matched']
     return res['value']
   else
@@ -27,3 +26,4 @@ endfunction
 
 "echo Parse('1 + 2 + 3')
 echo Parse('1 + 2 + a')
+echo Parse('')

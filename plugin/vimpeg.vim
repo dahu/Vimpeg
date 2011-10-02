@@ -147,12 +147,16 @@ function! Vimpeg(options)
   func! peg.ExpressionSequence.matcher(input) dict "{{{3
     let elements = []
     let is_matched = 1
+    let errmsg = ''
     " TODO: should this be -1 or 0?
     let pos = -1
     for s in self.seq
       let e = copy(self.GetSym(s))
       let e.elements = []
       let m = e.pmatch(a:input)
+      " BEA: Expermineted with adding even possible fails for errmsg...
+      " not doing this for now...
+      "call add(elements, m)
       if !m['is_matched']
         let is_matched = 0
         break
@@ -167,8 +171,10 @@ function! Vimpeg(options)
       if has_key(self, 'on_match')
         let self.value = call(self.on_match, [self.value])
       endif
+    else
+      let errmsg = "Failed to match Sequence at byte " . a:input.pos
     endif
-    return {'id': self.id, 'elements': elements, 'pos': pos, 'value': self.value, 'is_matched': is_matched}
+    return {'id': self.id, 'elements': elements, 'pos': pos, 'value': self.value, 'is_matched': is_matched, 'errmsg': errmsg}
   endfunc
 
   let peg.ExpressionOrderedChoice = copy(peg.Expression) "{{{2
@@ -183,6 +189,7 @@ function! Vimpeg(options)
   func! peg.ExpressionOrderedChoice.matcher(input) dict "{{{3
     let element = {}
     let is_matched = 0
+    let errmsg = ''
     " TODO: -1 or 0?
     let pos = -1
     for c in self.choices
@@ -202,8 +209,10 @@ function! Vimpeg(options)
       if has_key(self, 'on_match')
         let self.value = call(self.on_match, [self.value])
       endif
+    else
+      let errmsg = "Failed to match Ordered Choice at byte " . a:input.pos
     endif
-    return {'id': self.id, 'elements': [element], 'pos': pos, 'value': self.value, 'is_matched': is_matched}
+    return {'id': self.id, 'elements': [element], 'pos': pos, 'value': self.value, 'is_matched': is_matched, 'errmsg': errmsg}
   endfunc
 
   let peg.ExpressionMany = copy(peg.Expression) "{{{2
