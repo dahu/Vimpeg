@@ -76,10 +76,6 @@ func! ArgList(elems)
   "echo "ArgList: " . string(a:elems)
   let arglist = a:elems[0]
   call map(map(a:elems[1], 'v:val[1]'), 'extend(arglist, v:val)')
-  "let letlist = [a:elems[0][0][1]]
-  "call extend(arglist, map(copy(a:elems[1]), 'v:val[1][0][0]'))
-  "call extend(letlist, map(copy(a:elems[1]), 'v:val[1][0][1]'))
-  "return [arglist] + [letlist]
   return arglist
 endfunc
 
@@ -111,11 +107,11 @@ endfunc
 
 func! FBody(elems)
   "echo "FBody: " . string(a:elems)
-  return a:elems[0]
+  return a:elems
 endfunc
 
 func! FCall(elems)
-  echo "FCall: " . string(a:elems)
+  "echo "FCall: " . string(a:elems)
   let fargs = a:elems[1]
   "let avals = a:elems[1][0][0]
   "call map(a:elems[1][0][1], 'extend(fargs, v:val)')
@@ -132,7 +128,6 @@ func! VFunc(elems)
 endfunc
 
 func! Vigor(expr)
-  "return g:vigor.match(a:expr)['value'][0]
   let res = g:vigor.match(a:expr)
   if res['is_matched']
     let r = ''
@@ -148,8 +143,8 @@ endfunc
 
 " The power() function, defaulting to powers of 10
 echo Vigor("Pow = (a, b: 20) ->\n  let x = a * b\n  return x")
-echo Vigor("Pow(a: 2)")
-"echo Vigor("Pow(a: 3, b: 8)")
+"echo Vigor("Pow(a: 2)")
+echo Vigor("Pow(a: 3, b: 8)")
 "echo Vigor("Pow(b: 3, a: 8)")
 
 " This is still hard because we still need a func-table with expected arg details

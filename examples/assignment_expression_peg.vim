@@ -86,18 +86,17 @@ endfunction
 " the evaluated result (the 'value').
 func! Ass(expr)
   return string(g:ass.match(a:expr)['value'])
-  "return string(g:ass.match(a:expr)['value'])
 endfunc
 
 " client side
-"echo 'let x = 45'           . '==' . Ass('x = 45')
-"echo 'let x = 45 - 101'           . '==' . Ass('x = 45 - 101')
-"echo 'let x = 45 + 99'      . '==' . Ass('x = 45 + 99')
-"echo 'let x = 15 - 101'     . '==' . Ass('x = 15 - 101')
-"echo 'let x = 234 * 3'      . '==' . Ass('x = 234 * 3')
-"echo 'let x = 1023 / 2'     . '==' . Ass('x = 1023 / 2')
-"echo 'let x = (1023 / 2) + 7'     . '==' . Ass('x = (1023 / 2) + 7')
-"echo 'let x = ((1023 / 2) * 9) + (7 - 2)'     . '==' . Ass('x = ((1023 / 2) * 9) + (7 - 2)')
+echo 'let x = 45'           . '==' . Ass('x = 45')
+echo 'let x = 45 - 101'           . '==' . Ass('x = 45 - 101')
+echo 'let x = 45 + 99'      . '==' . Ass('x = 45 + 99')
+echo 'let x = 15 - 101'     . '==' . Ass('x = 15 - 101')
+echo 'let x = 234 * 3'      . '==' . Ass('x = 234 * 3')
+echo 'let x = 1023 / 2'     . '==' . Ass('x = 1023 / 2')
+echo 'let x = (1023 / 2) + 7'     . '==' . Ass('x = (1023 / 2) + 7')
+echo 'let x = ((1023 / 2) * 9) + (7 - 2)'     . '==' . Ass('x = ((1023 / 2) * 9) + (7 - 2)')
 
 echo 'let x = a / 2'        . '==' . Ass('x = a / 2')
 echo 'let x = abc / 2'      . '==' . Ass('x = abc / 2')

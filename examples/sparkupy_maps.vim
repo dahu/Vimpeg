@@ -1,7 +1,9 @@
+" Sparkupy grammar for Vim maps
+" Barry Arthur, 02 Oct 2011
+
 so ../plugin/vimpeg.vim
 let p = Vimpeg({'skip_white': 1})
 
-" Sparkupy grammar for Vim maps
 " NOTE: This is only a demonstration of the parser, not a viable
 " implementation of such a sparkupy map generator.
 
@@ -29,7 +31,7 @@ call            p.e('.\+',                                       {'id': 'string'
 let s:ctrl = ''
 
 func! VimMap(elems)
-  echomsg "VimMap: " . string(a:elems)
+  "echo "VimMap: " . string(a:elems)
   let s = ''
   if s:ctrl != ''
     let s = '>'
@@ -38,6 +40,7 @@ func! VimMap(elems)
   return join(a:elems) . s
 endfunc
 func! KeyCode(elems)
+  "echo "KeyCode: " . string(a:elems)
   let keycodes = {
         \    ' '  : " ",
         \    '_'  : "",
@@ -75,27 +78,30 @@ func! KeyCode(elems)
   return(s . keycodes[a:elems])
 endfunc
 func! KeyCombo(elems)
+  "echo "KeyCombo: " . string(a:elems)
   let s = ''
-  if a:elems[0][0] == '-'
-    let s = '><' . s:ctrl . '-' . a:elems[1][0]
+  if a:elems[0] == '-'
+    let s = '><' . s:ctrl . '-' . a:elems[1]
   else
     if s:ctrl != ''
       let s = '>'
     endif
-    let s:ctrl = a:elems[0][0]
-    let s .= '<' . s:ctrl . '-' . a:elems[1][0]
+    let s:ctrl = a:elems[0]
+    let s .= '<' . s:ctrl . '-' . a:elems[1]
   end
   return s
 end
 endfunc
 func! String(elems)
+  "echo "String: " . string(a:elems)
   return a:elems
 endfunc
 func! SparkupVimMap(expr)
+  "echo "SparkupVimMap: " . string(a:expr)
   let s:ctrl = ''
   let retval = g:vimmap.match(a:expr)
   if retval['is_matched']
-    return retval['value'][0]
+    return retval['value']
   else
     return a:expr
   endif

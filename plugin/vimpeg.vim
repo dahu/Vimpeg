@@ -103,11 +103,8 @@ function! Vimpeg(options)
       let is_matched = 0
     end
     if is_matched
-      " BEA - removing some of the nested lists
-      "let self.value = [strpart(a:input.str, ends[0], ends[1] - ends[0])]
       let self.value = strpart(a:input.str, ends[0], ends[1] - ends[0])
       if has_key(self, 'on_match')
-        "let self.value = [call(self.on_match, [self.value[0]])]
         let self.value = call(self.on_match, [self.value])
       endif
     endif
@@ -168,8 +165,6 @@ function! Vimpeg(options)
       let pos = elements[-1]['pos']
       let self.value = map(copy(elements), 'v:val["value"]')
       if has_key(self, 'on_match')
-        " BEA: TODO: can I remove these nested lists?
-        "let self.value = [call(self.on_match, [self.value])]
         let self.value = call(self.on_match, [self.value])
       endif
     endif
@@ -205,7 +200,6 @@ function! Vimpeg(options)
       let pos = element['pos']
       let self.value = element["value"]
       if has_key(self, 'on_match')
-        "let self.value = [call(self.on_match, [self.value])]
         let self.value = call(self.on_match, [self.value])
       endif
     endif
@@ -252,7 +246,7 @@ function! Vimpeg(options)
         let pos = elements[-1]['pos']
         let self.value = map(copy(elements), 'v:val["value"]')
         if has_key(self, 'on_match')
-          let self.value = [call(self.on_match, [self.value])]
+          let self.value = call(self.on_match, [self.value])
         endif
       endif
     endif
@@ -286,7 +280,7 @@ function! Vimpeg(options)
       " interesting parsers...
       let self.value = element["value"]
       if has_key(self, 'on_match')
-        let self.value = [call(self.on_match, [self.value])]
+        let self.value = call(self.on_match, [self.value])
       endif
     endif
     return {'id': self.id, 'elements': [element], 'pos': pos, 'type': self.type, 'value': self.value, 'is_matched': is_matched}
