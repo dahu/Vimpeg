@@ -80,7 +80,7 @@ function! Vimpeg(options)
   endfunc
 
   " (input, [{id,debug,verbose}])
-  func peg.Expression.new(pat, ...) dict "{{{2
+  func peg.Expression.new(pat, ...) dict "{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
     let e.pat = a:pat
     if e.id != ''
@@ -135,7 +135,7 @@ function! Vimpeg(options)
   endfunc
 
   let peg.ExpressionSequence = copy(peg.Expression) "{{{2
-  func! peg.ExpressionSequence.new(seq, ...) dict
+  func! peg.ExpressionSequence.new(seq, ...) dict "{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
     let e.seq = a:seq
     if e.id != ''
@@ -154,15 +154,14 @@ function! Vimpeg(options)
       let e = copy(self.GetSym(s))
       let e.elements = []
       let m = e.pmatch(a:input)
-      " BEA: Expermineted with adding even possible fails for errmsg...
-      " not doing this for now...
-      "call add(elements, m)
+      " BEA: Expermineting with adding even possible fails for errmsg...
+      call add(elements, m)
       if !m['is_matched']
         let is_matched = 0
         break
       endif
       " TODO: do I need to delete these elements if not matched?
-      call add(elements, m)
+      "call add(elements, m)
       unlet s
     endfor
     if is_matched
@@ -178,7 +177,7 @@ function! Vimpeg(options)
   endfunc
 
   let peg.ExpressionOrderedChoice = copy(peg.Expression) "{{{2
-  func! peg.ExpressionOrderedChoice.new(choices, ...) dict
+  func! peg.ExpressionOrderedChoice.new(choices, ...) dict "{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
     let e.choices = a:choices
     if e.id != ''
@@ -216,7 +215,7 @@ function! Vimpeg(options)
   endfunc
 
   let peg.ExpressionMany = copy(peg.Expression) "{{{2
-  func! peg.ExpressionMany.new(exp, min, max, ...) dict
+  func! peg.ExpressionMany.new(exp, min, max, ...) dict "{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
     let e.exp = copy(a:exp)
     let e.min = a:min
@@ -263,7 +262,7 @@ function! Vimpeg(options)
   endfunc
 
   let peg.ExpressionPredicate = copy(peg.Expression) "{{{2
-  func! peg.ExpressionPredicate.new(exp, type, ...) dict
+  func! peg.ExpressionPredicate.new(exp, type, ...) dict "{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
     let e.exp = a:exp
     let e.type = a:type

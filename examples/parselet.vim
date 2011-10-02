@@ -14,8 +14,11 @@ let operator     =  q.and([q.e('+'), 'maybe_space'], {'id': 'operator'})
 let sum          =  q.and(['integer', 'operator', 'expression'], {'id': 'sum'})
 let expression   =  q.or(['sum', 'integer'], {'id': 'expression'})
 
+let ident        =  q.e('\w\+', {'id': 'ident'})
+let assignment   =  q.and(['ident', 'maybe_space', q.e('='), 'maybe_space', 'expression'], {'id': 'assignment'})
 
-function! Parse(str)
+
+function! ParseExpression(str)
   let res = g:expression.match(a:str)
   if res['is_matched']
     return res['value']
@@ -24,6 +27,36 @@ function! Parse(str)
   endif
 endfunction
 
-"echo Parse('1 + 2 + 3')
-echo Parse('1 + 2 + a')
-echo Parse('')
+function! ErrorTree(pobj)
+  if has_key(a:pobj, 'errmsg')
+    if a:pobj['errmsg'] != ''
+      echo a:pobj['errmsg']
+    endif
+  endif
+  if has_key(a:pobj, 'elements')
+    for o in a:pobj['elements']
+      if type(o) == type({})
+        call ErrorTree(o)
+      elseif type(o) == type([])
+        for o2 in o
+          call ErrorTree(o2)
+        endfor
+      endif
+    endfor
+  endif
+endfunction
+
+function! ParseAssignment(str)
+  let res = g:assignment.match(a:str)
+  if res['is_matched']
+    return res['value']
+  else
+    "echo res
+    call ErrorTree(res)
+    return res['errmsg']
+  endif
+endfunction
+
+"echo ParseExpression('1 + 2 + 3')
+"echo ParseAssignment('x = 1 + 2')
+echo ParseAssignment('x 1 + 2')
