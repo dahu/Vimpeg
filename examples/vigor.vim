@@ -63,7 +63,7 @@ let vigor = p.or(['fdecl', 'fcall'], {'id': 'vfunc', 'on_match': 'VFunc'})
 " callbacks on successful match of element (grammar provider library side)
 
 func! Arg(elems)
-  echo "Arg: " . string(a:elems)
+  "echo "Arg: " . string(a:elems)
   let assignment = {}
   let assignment[a:elems[0]] = '__unbound__'
   if len(a:elems[1]) > 0
@@ -73,7 +73,7 @@ func! Arg(elems)
 endfunc
 
 func! ArgList(elems)
-  echo "ArgList: " . string(a:elems)
+  "echo "ArgList: " . string(a:elems)
   let arglist = a:elems[0]
   call map(map(a:elems[1], 'v:val[1]'), 'extend(arglist, v:val)')
   "let letlist = [a:elems[0][0][1]]
@@ -84,29 +84,29 @@ func! ArgList(elems)
 endfunc
 
 func! Args(elems)
-  echo "Args: " . string(a:elems)
+  "echo "Args: " . string(a:elems)
   return a:elems[1]
 endfunc
 
 func! FDecl(elems)
-  echo "FDecl: " . string(a:elems)
+  "echo "FDecl: " . string(a:elems)
   let name = a:elems[0]
   let args = a:elems[2]
-  let body = a:elems[4]
+  let body = a:elems[4][0]
   let fhead = "function! " . name . " (args)\n"
+  let lets = ''
   let cnt = 0
   for arg in items(args)
-    if lets[cnt] != {}
-      let val = values(lets[cnt])[0]
-      let fhead .= "  let a:" . arg . " = has_key(a:args, '" . arg . "') ? a:args['" . arg . "'] : " . val . "\n"
+    if arg[1] != '__unbound__'
+      let lets .= "  let a:" . arg[0] . " = has_key(a:args, '" . arg[0] . "') ? a:args['" . arg[0] . "'] : " . arg[1] . "\n"
     else
-      let fhead .= "  let a:" . arg . " = a:args['" . arg . "']\n"
+      let lets .= "  let a:" . arg[0] . " = a:args['" . arg[0] . "']\n"
     endif
-    let fhead .= "  let " . arg . " = a:" . arg . "\n"
+    let lets .= "  let " . arg[0] . " = a:" . arg[0] . "\n"
     let cnt += 1
   endfor
 
-  return fhead . body . "\nendfunction"
+  return fhead . lets . body . "\nendfunction"
 endfunc
 
 func! FBody(elems)
@@ -115,20 +115,20 @@ func! FBody(elems)
 endfunc
 
 func! FCall(elems)
-  "echo "FCall: " . string(a:elems)
-  let fargs = {}
-  let avals = a:elems[1][0][0]
-  call map(a:elems[1][0][1], 'extend(fargs, v:val)')
-  call filter(avals, 'has_key(fargs, v:val) == 0')
-  if len(avals) > 0
-    call extend(fargs, {'b': avals[0]})
-  endif
-  return "let r = " . a:elems[0][0] . "(" . string(fargs) . ")"
+  echo "FCall: " . string(a:elems)
+  let fargs = a:elems[1]
+  "let avals = a:elems[1][0][0]
+  "call map(a:elems[1][0][1], 'extend(fargs, v:val)')
+  "call filter(avals, 'has_key(fargs, v:val) == 0')
+  "if len(avals) > 0
+    "call extend(fargs, {'b': avals[0]})
+  "endif
+  return "let r = " . a:elems[0] . "(" . string(fargs) . ")"
 endfunc
 
 func! VFunc(elems)
   "echo "VFunc: " . string(a:elems)
-  return a:elems[0]
+  return a:elems
 endfunc
 
 func! Vigor(expr)
@@ -136,20 +136,23 @@ func! Vigor(expr)
   let res = g:vigor.match(a:expr)
   if res['is_matched']
     let r = ''
-    exec res['value'][0]
+    echo res['value']
+    exec res['value']
     return r
-  "else
-    "echo res['errmsg']
+  else
+    echo res['errmsg']
   endif
 endfunc
 
 " client side
 
 " The power() function, defaulting to powers of 10
-echo Vigor("Pow = (a, b, c: 20) ->\n  let x = a * b\n  return x")
-"echo Vigor("Pow(a: 2)")
+echo Vigor("Pow = (a, b: 20) ->\n  let x = a * b\n  return x")
+echo Vigor("Pow(a: 2)")
 "echo Vigor("Pow(a: 3, b: 8)")
 "echo Vigor("Pow(b: 3, a: 8)")
+
+" This is still hard because we still need a func-table with expected arg details
 "echo Vigor("Pow(a: 8, 2)")
 
 " The resulting VimL function should be callable from VimL as:
