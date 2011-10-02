@@ -29,12 +29,13 @@ call            p.e('.\+',                                       {'id': 'string'
 let s:ctrl = ''
 
 func! VimMap(elems)
-  "echomsg "VimMap: " . string(a:elems)
+  echomsg "VimMap: " . string(a:elems)
   let s = ''
   if s:ctrl != ''
     let s = '>'
   endif
-  return join(map(a:elems, 'v:val[0]'), '') . s
+  "return join(map(a:elems, 'v:val[0]'), '') . s
+  return join(a:elems) . s
 endfunc
 func! KeyCode(elems)
   let keycodes = {
@@ -71,7 +72,7 @@ func! KeyCode(elems)
     let s = '>'
     let s:ctrl = ''
   endif
-  return(s . keycodes[a:elems[0]])
+  return(s . keycodes[a:elems])
 endfunc
 func! KeyCombo(elems)
   let s = ''

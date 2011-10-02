@@ -63,38 +63,39 @@ let vigor = p.or(['fdecl', 'fcall'], {'id': 'vfunc', 'on_match': 'VFunc'})
 " callbacks on successful match of element (grammar provider library side)
 
 func! Arg(elems)
-  "echo "elems: " . string(a:elems)
+  echo "Arg: " . string(a:elems)
   let assignment = {}
+  let assignment[a:elems[0]] = '__unbound__'
   if len(a:elems[1]) > 0
-    let assignment[a:elems[0][0]] = a:elems[1][0][1][0]
+    let assignment[a:elems[0]] = a:elems[1][0][1]
   endif
-  return a:elems[0] + [assignment]
+  return assignment
 endfunc
 
 func! ArgList(elems)
-  let arglist = [a:elems[0][0][0]]
-  let letlist = [a:elems[0][0][1]]
-  call extend(arglist, map(copy(a:elems[1]), 'v:val[1][0][0]'))
-  call extend(letlist, map(copy(a:elems[1]), 'v:val[1][0][1]'))
-  return [arglist] + [letlist]
+  echo "ArgList: " . string(a:elems)
+  let arglist = a:elems[0]
+  call map(map(a:elems[1], 'v:val[1]'), 'extend(arglist, v:val)')
+  "let letlist = [a:elems[0][0][1]]
+  "call extend(arglist, map(copy(a:elems[1]), 'v:val[1][0][0]'))
+  "call extend(letlist, map(copy(a:elems[1]), 'v:val[1][0][1]'))
+  "return [arglist] + [letlist]
+  return arglist
 endfunc
 
 func! Args(elems)
-  return a:elems[1][0]
+  echo "Args: " . string(a:elems)
+  return a:elems[1]
 endfunc
 
 func! FDecl(elems)
-  "echo "FDecl: " . string(a:elems)
-  let name = a:elems[0][0]
-  let args = a:elems[2][0][0]
-  let lets = a:elems[2][0][1]
-  let body = a:elems[4][0][0]
-  "echo "name: " . name
-  "echo "args: " . string(args)
-  "echo "lets: " . string(lets)
+  echo "FDecl: " . string(a:elems)
+  let name = a:elems[0]
+  let args = a:elems[2]
+  let body = a:elems[4]
   let fhead = "function! " . name . " (args)\n"
   let cnt = 0
-  for arg in args
+  for arg in items(args)
     if lets[cnt] != {}
       let val = values(lets[cnt])[0]
       let fhead .= "  let a:" . arg . " = has_key(a:args, '" . arg . "') ? a:args['" . arg . "'] : " . val . "\n"
@@ -145,16 +146,21 @@ endfunc
 " client side
 
 " The power() function, defaulting to powers of 10
-echo Vigor("Pow = (a, b: 10) ->\n  let x = a * b\n  return x")
-echo Vigor("Pow(a: 2)")
-echo Vigor("Pow(a: 3, b: 8)")
-echo Vigor("Pow(a: 8, 2)")
+echo Vigor("Pow = (a, b, c: 20) ->\n  let x = a * b\n  return x")
+"echo Vigor("Pow(a: 2)")
+"echo Vigor("Pow(a: 3, b: 8)")
+"echo Vigor("Pow(b: 3, a: 8)")
+"echo Vigor("Pow(a: 8, 2)")
 
 " The resulting VimL function should be callable from VimL as:
 "   echo Pow({'a': 2, 'b': 3})
 "   echo Pow({'a': 4})
 "
 " Which would be represented in Vigor as:
+"   NOTE: But isn't yet because the same args parse-code is being used for
+"   call as with decl, so for now, the real args look like:
+"     echo Pow(a: 2, b: 3)
+"
 "   echo Pow(a = 2, b = 3)  or  echo Pow(2, 3)
 "   echo Pow(a = 4)         or  echo Pow(4)
 

@@ -39,7 +39,7 @@ call        p.e('[0-9]',                                                        
 
 func! Assignment(elems)
   "echo 'Assignment='.string(a:elems)
-  return "let " . a:elems[0][0] . ' = ' . a:elems[2][0]
+  return "let " . a:elems[0] . ' = ' . a:elems[2]
 endfunc
 func! Expression(elems)
   "echo 'Expression='.string(a:elems)
@@ -53,12 +53,12 @@ func! Op(elems)
   return Flatten(a:elems)
 endfunc
 func! Term(elems)
-  echo 'Term='.string(a:elems)
+  "echo 'Term='.string(a:elems)
   return Flatten(a:elems)
 endfunc
 func! Ident(elems)
   "echo 'Ident='.string(a:elems)
-  return a:elems[0]
+  return a:elems
 endfunc
 func! Func(elems)
   "echo 'Func='.string(a:elems)
@@ -85,7 +85,7 @@ endfunction
 " Toggle the return options here to variously see the entire match object, or
 " the evaluated result (the 'value').
 func! Ass(expr)
-  return string(g:ass.match(a:expr))
+  return string(g:ass.match(a:expr)['value'])
   "return string(g:ass.match(a:expr)['value'])
 endfunc
 
@@ -97,8 +97,8 @@ endfunc
 "echo 'let x = 234 * 3'      . '==' . Ass('x = 234 * 3')
 "echo 'let x = 1023 / 2'     . '==' . Ass('x = 1023 / 2')
 "echo 'let x = (1023 / 2) + 7'     . '==' . Ass('x = (1023 / 2) + 7')
-echo 'let x = ((1023 / 2) * 9) + (7 - 2)'     . '==' . Ass('x = ((1023 / 2) * 9) + (7 - 2)')
+"echo 'let x = ((1023 / 2) * 9) + (7 - 2)'     . '==' . Ass('x = ((1023 / 2) * 9) + (7 - 2)')
 
-"echo 'let x = a / 2'        . '==' . Ass('x = a / 2')
-"echo 'let x = abc / 2'      . '==' . Ass('x = abc / 2')
-"echo 'let x = apple() / 2'  . '==' . Ass('x = apple() / 2')
+echo 'let x = a / 2'        . '==' . Ass('x = a / 2')
+echo 'let x = abc / 2'      . '==' . Ass('x = abc / 2')
+echo 'let x = apple() / 2'  . '==' . Ass('x = apple() / 2')

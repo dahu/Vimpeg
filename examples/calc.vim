@@ -28,29 +28,43 @@ call         p.e('\d\+'                            , {'id': 'num'    , 'on_match
 " ex functions called on successful match of element (grammar provider library side)
 
 func! Add(elems)
-  return a:elems[0][0] + a:elems[2][0]
+  "echo "Add: " . string(a:elems)
+  "return a:elems[0][0] + a:elems[2][0]
+  return a:elems[0] + a:elems[2]
 endfunc
 func! Sub(elems)
-  return a:elems[0][0] - a:elems[2][0]
+  "echo "Sub: " . string(a:elems)
+  "return a:elems[0][0] - a:elems[2][0]
+  return a:elems[0] - a:elems[2]
 endfunc
 func! Mul(elems)
-  return a:elems[0][0] * a:elems[2][0]
+  "echo "Mul: " . string(a:elems)
+  "return a:elems[0][0] * a:elems[2][0]
+  return a:elems[0] * a:elems[2]
 endfunc
 func! Div(elems)
-  return a:elems[0][0] / a:elems[2][0]
+  "echo "Div: " . string(a:elems)
+  "return a:elems[0][0] / a:elems[2][0]
+  return a:elems[0] / a:elems[2]
 endfunc
-func! Num(elem)
-  return str2nr(a:elem)
+func! Num(elems)
+  "echo "Num: " . string(a:elems)
+  return str2nr(a:elems)
 endfunc
-func! NCalc(elem)
-  return a:elem[1][0]
+func! NCalc(elems)
+  "echo "NCalc: " . string(a:elems)
+  return a:elems[1]
 endfunc
 func! Calc(expr)
+  "echo "Calc: " . string(a:expr)
   "return string(g:calc.match(a:expr))
-  return g:calc.match(a:expr)['value'][0]
+  return g:calc.match(a:expr)['value']
 endfunc
 
 " client side
 
-echo (3 + 4)                      . '==' . Calc('3 + 4')
-echo (14 + 15 * 3 + 2 * (5 - 7))  . '==' . Calc('14 + 15 * 3 + 2 * (5 - 7)')
+echo (45 + 123)                      . '==' . Calc('45 + 123')
+echo (123 - 45)                      . '==' . Calc('123 - 45')
+echo (123 * 45)                      . '==' . Calc('123 * 45')
+echo (123 / 45)                      . '==' . Calc('123 / 45')
+echo (14 + 15 * 3 + 2 * (5 - 7))     . '==' . Calc('14 + 15 * 3 + 2 * (5 - 7)')
