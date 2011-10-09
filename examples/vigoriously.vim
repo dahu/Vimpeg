@@ -1,16 +1,9 @@
 " Vigoriously - VimL Function (snippet) generator
 " Barry Arthur, 02 Oct 2011
+" version 0.3 - Integrating Raimondi's Way
 
 so ../plugin/vimpeg.vim
 let p = Vimpeg({'skip_white': 1})
-
-" fdecl               := identifier arguments
-" identifier          := '\w\+'
-" value               := '\w\+'
-" arguments           := '(' arg_list ')'
-" arg_list            := assignment (',' assignment)*
-" assignment          := identifier ':' expression
-" expression          := COMPLICATED - for now, use   value
 
 call p.e('"', {'id': 'comment'})
 call p.e('\w\+', {'id': 'value'})
@@ -21,7 +14,9 @@ call p.and(['ident', p.maybe_one(p.and([p.e(':'), 'value']))], {'id': 'arg', 'on
 call p.and(['arg', p.maybe_many(p.and([p.e(','), 'arg']))], {'id': 'arglist', 'on_match': 'ArgList'})
 call p.and([p.e('('), 'arglist', p.e(')')], {'id': 'args', 'on_match': 'Args'})
 
-let vigoriously = p.and(['comment', 'ident', 'args'], {'id': 'fdecl', 'on_match': 'FDecl'})
+call p.e('.*', {'id': 'fbody'})
+
+let vigoriously = p.and(['comment', 'ident', 'args', p.e('->'), 'fbody'], {'id': 'fdecl', 'on_match': 'FDecl'})
 
 " callbacks on successful match of element (grammar provider library side)
 
@@ -51,42 +46,42 @@ func! FDecl(elems)
   "echo "FDecl: " . string(a:elems)
   let name = a:elems[1]
   let args = a:elems[2]
+  let body = a:elems[4]
   let fhead = "function! " . name . " ("
   let fargs = []
   let unbounds = 0
-  let lets = ''
+  let lets = '  " vigoriously {{{' . "\n"
   let cnt = 0
   for arg in items(args)
     if arg[1] != '__vigor_manarg'
       let unbounds = 1
     else
-      let lets .= "  let " . arg[0] . " = a:" . arg[0] . "\n"
       call add(fargs, arg[0])
     endif
     let cnt += 1
   endfor
 
   let varargs = filter(items(copy(args)), 'v:val[1] != "__vigor_manarg"')
-  let varvals = {}
-  call map(map(copy(varargs), '{v:val[0]: v:val[1]}'), 'extend(varvals, v:val)')
+  call map(args, 'v:val =~ "manarg" ? "a:".v:key : v:val')
+  let lets .= "  let __vigor_args = " . string(map(varargs, 'v:val[0]')) . "\n"
+  let lets .= "  let __vigor_argvals = " . string(args) . "\n"
 
-  let lets .= "  let l:__vigor_argvals = " . string(varvals) . "\n"
-  let lets .= "  let l:__vigor_args = " . string(map(varargs, 'v:val[0]')) . "\n"
-
-  let lets .= "  let cnt = 0" . "\n"
-  let lets .= "  for i in a:000" . "\n"
-  let lets .= "    exe 'let ' . l:__vigor_args[cnt] . ' = ' . i" . "\n"
-  let lets .= "    let cnt += 1" . "\n"
+  let lets .= "  let i = 0" . "\n"
+  let lets .= "  while i < a:0" . "\n"
+  let lets .= "    let __vigor_argvals[__vigor_args[i]] = a:000[i]" . "\n"
+  let lets .= "    let i += 1" . "\n"
+  let lets .= "  endwhile" . "\n"
+  let lets .= "  for i in keys(__vigor_argvals)" . "\n"
+  let lets .= "    exe 'let ' . i . ' = ' . __vigor_argvals[i]" . "\n"
   let lets .= "  endfor" . "\n"
-  let lets .= "  for i in range(cnt, len(l:__vigor_args) - 1)" . "\n"
-  let lets .= "    exe 'let ' . l:__vigor_args[i] . ' = ' . l:__vigor_argvals[l:__vigor_args[i]]" . "\n"
-  let lets .= "  endfor" . "\n"
+  let lets .= "  unlet i" . ' "}}}' . "\n"
+  let lets .= "\n  "
 
   if unbounds
     call add(fargs, '...')
   endif
 
-  return fhead . join(fargs, ',') . ")\n" . lets . "\nendfunction"
+  return fhead . join(fargs, ',') . ")\n" . lets . body . "\nendfunction"
 endfunc
 
 func! Vigoriously()
@@ -100,29 +95,14 @@ endfunc
 
 nnoremap <leader>x :call Vigoriously()<CR>
 
-
-
 " 1. Move your cursor to the line below and type   <leader>x
 
-" Mul (a, b: 2, c: 3)
+" Mul (a, b: 2, c: 3) -> return a * b * c
 
+" 2. Save & then re-source the file with   :so %   to vivify the newly
+"    generated Mul() function.
+"
+" 3. And then experiment with calls like:
+"
+"  :echo Mul(4) :echo Mul(4,5) :echo Mul(4,5,6)
 
-
-" 2. Add the following line to the end of the generated function above
-"    (uncommented):
-"
-"  return a * b * c
-"
-" 3. Re-source the file with   :so %   to vivify the newly generated Mul()
-"    function.
-"
-" 4. And then experiment with calls like:
-"
-"  :echo Mul(1)
-"  :echo Mul(4)
-"  :echo Mul(4,5)
-"  :echo Mul(4,5,6)
-"
-" 5. Experiment with other function signatures, like:
-"
-" Mul (a, b, c: 3)
