@@ -1,12 +1,13 @@
 " Vigoriously - VimL Function (snippet) generator
 " Barry Arthur, 02 Oct 2011
-" version 0.3 - Integrating Raimondi's Way
+" Last updated: 10 Oct 2011
+" version 0.4 - Ready for Release in Vimpeg Article
 
 so ../plugin/vimpeg.vim
 let p = Vimpeg({'skip_white': 1})
 
 call p.e('"', {'id': 'comment'})
-call p.e('\w\+', {'id': 'value'})
+call p.e('[[:alnum:]&]\+', {'id': 'value'})
 call p.e('\w\+', {'id': 'ident'})
 call p.and(['ident', p.maybe_one(p.and([p.e(':'), 'value']))], {'id': 'arg', 'on_match': 'Arg'})
 
@@ -14,9 +15,7 @@ call p.and(['ident', p.maybe_one(p.and([p.e(':'), 'value']))], {'id': 'arg', 'on
 call p.and(['arg', p.maybe_many(p.and([p.e(','), 'arg']))], {'id': 'arglist', 'on_match': 'ArgList'})
 call p.and([p.e('('), 'arglist', p.e(')')], {'id': 'args', 'on_match': 'Args'})
 
-call p.e('.*', {'id': 'fbody'})
-
-let vigoriously = p.and(['comment', 'ident', 'args', p.e('->'), 'fbody'], {'id': 'fdecl', 'on_match': 'FDecl'})
+let vigoriously = p.and(['comment', 'ident', 'args', p.e('->'), p.e('.*')], {'id': 'fdecl', 'on_match': 'FDecl'})
 
 " callbacks on successful match of element (grammar provider library side)
 
@@ -81,6 +80,8 @@ func! FDecl(elems)
     call add(fargs, '...')
   endif
 
+  let body = substitute(body, '|', "\n  ", 'g')
+
   return fhead . join(fargs, ',') . ")\n" . lets . body . "\nendfunction"
 endfunc
 
@@ -95,14 +96,34 @@ endfunc
 
 nnoremap <leader>x :call Vigoriously()<CR>
 
+" 0. Source this file with   :so %
+
 " 1. Move your cursor to the line below and type   <leader>x
 
-" Mul (a, b: 2, c: 3) -> return a * b * c
+" MinWinWidth (textwidth, numberwidth: &numberwidth, foldcolumn: &foldcolumn) -> exe "set textwidth=" . textwidth . " numberwidth=" . numberwidth . " foldcolumn=" . foldcolumn
+function! MinWinWidth (textwidth,...)
+  " vigoriously {{{
+  let __vigor_args = ['numberwidth', 'foldcolumn']
+  let __vigor_argvals = {'numberwidth': '&numberwidth', 'foldcolumn': '&foldcolumn', 'textwidth': 'a:textwidth'}
+  let i = 0
+  while i < a:0
+    let __vigor_argvals[__vigor_args[i]] = a:000[i]
+    let i += 1
+  endwhile
+  for i in keys(__vigor_argvals)
+    exe 'let ' . i . ' = ' . __vigor_argvals[i]
+  endfor
+  unlet i "}}}
+
+  exe "set textwidth=" . textwidth . " numberwidth=" . numberwidth . " foldcolumn=" . foldcolumn
+endfunction
 
 " 2. Save & then re-source the file with   :so %   to vivify the newly
-"    generated Mul() function.
+"    generated MinWinWidth() function.
 "
 " 3. And then experiment with calls like:
 "
-"  :echo Mul(4) :echo Mul(4,5) :echo Mul(4,5,6)
-
+"  :call MinWinWidth(80)
+"  :call MinWinWidth(80, 4)
+"  :call MinWinWidth(80, 6, 4)
+"  :call MinWinWidth(80, 1, 0)
