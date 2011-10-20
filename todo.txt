@@ -1,0 +1,19 @@
+Todo
+====
+
+
+1. We need to generate a file with the grammar commented atop and the
+   peg statements below
+2. We need to execute the peg statements to have them vivified in the
+   current session
+3. We need to add the associated parser to a global hash
+4. We need to test this code on some actual real-world PEGs (we could
+   use any and all of our existing ones and eyeball the generated
+   output -- and then run the generated code to ensure runtime
+   goodness)
+5. We need to package a nice lib (interface) for all this
+6. We need at least one good example demonstrating this -- better yet,
+   get all of the existing examples and re-design them into this new
+   workflow
+7. We need to usr_41 the vimpeg lib itself
+
