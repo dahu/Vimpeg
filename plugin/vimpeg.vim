@@ -1,16 +1,18 @@
 " Vim global plugin file
-" Description:	%Plugin% provides some nice feature.
-" Maintainer:	%Maintainer% <%Email%>
-" Version:	%Version%
-" Last Change:	%Date%
+" Description:	Vimpeg - A PEG parser for Vim.
+" Maintainer:	Barry Arthur
+" Version:	0.1
+" Last Change:	2011 10 22
 " License:	Vim License (see :help license)
-" Location:	plugin/%Plugin_File%
+" Location:	plugin/vimpeg.vim
 
 if exists("g:loaded_vimpeg")
 "      \ || v:version < 700 || &compatible
   finish
 endif
 let g:loaded_vimpeg = 1
+
+g:vimpeg_version = '0.1'
 
 " Allow use of line continuation.
 let s:save_cpo = &cpo

@@ -1,6 +1,6 @@
 " Vim library file
 " Description:	VimPEG Parser compiler.
-" Maintainer:	%Maintainer% <%Email%>
+" Maintainer:	Israel Chauca <israelchauca@gmail.com>
 " Version:	0.1
 " Last Change:	Sat Oct 22 19:28:03 2011
 " License:	Vim License (see :help license)
@@ -23,14 +23,6 @@ let s:p = vimpeg#parser({'skip_white': 1})
 function! s:SID() abort
   return matchstr(expand('<sfile>'), '<SNR>\d\+_\zeSID$')
 endfun
-
-" Ideas {{{
-" - For later, maybe create callback functions populated with vars
-"   corresponding to each element? Check Definition(). Not sure if all vars
-"   would be used, though.
-" - Add support for double quoted strings.
-" - Should VimPEG's function have the abort flag?
-" }}}
 
 " Original PEG syntax {{{
 " # Hierarchical syntax
@@ -66,7 +58,7 @@ endfun
 " EndOfFile <- !.
 " }}}
 
-" VimPEG syntax {{{
+" VimPEG grammar {{{
 " <definition>       ::= ( <label> <mallet> <expression> <callback>? )? <comment>? -> Definition
 " <expression>       ::= <sequence> ( <or> <sequence> )* -> Expression
 " <sequence>         ::= <prefix>* -> Sequence
@@ -100,8 +92,7 @@ endfun
 " <lt>               ::= '<'
 " }}}
 
-" Parser grammar {{{
-"let vimpeg#peg#parser = s:p.and(['label', 'mallet', 'expression', s:p.maybe_one('callback')],
+" Parser building {{{
 call s:p.and([s:p.maybe_one(s:p.and(['label', 'mallet', 'expression', s:p.maybe_one('callback')])), s:p.maybe_one('comment')],
       \{'id': 'definition', 'on_match': s:SID().'Definition'})
 call s:p.and(['sequence', s:p.maybe_many(s:p.and(['or', 'sequence']))],
@@ -165,9 +156,10 @@ call s:p.e('<',
 " }}}
 
 " Callback functions {{{
-function! s:Definition(elems) abort
+function! s:Definition(elems) abort "{{{
   "echom string(a:elems)
   if len(a:elems[0]) > 0
+    " Definition
     let label = a:elems[0][0][0]
     let mallet = a:elems[0][0][1]
     let expression = a:elems[0][0][2]
@@ -175,24 +167,23 @@ function! s:Definition(elems) abort
     let result = 'call '.expression[:-2].",\n      \\{'id': ".label.
           \(callback != '' ? ", 'on_match': ".string(callback) : '') . "})"
   else
+    " Only a comment
     let result = ''
   endif
   "echom 'Definition: ' . result
   return result
-endfunction
-function! s:Expression(elems) abort
+endfunction "}}}
+function! s:Expression(elems) abort "{{{
   "echom string(a:elems)
   if len(a:elems[1]) > 0
-    "echom 1
     let result = 'p.or(['.a:elems[0]. ', '. join(map(copy(a:elems[1]), 'v:val[1]'), ', ').'])'
   else
-    "echom 2
     let result = a:elems[0]
   endif
   "echom 'Expression: ' . result
   return result
-endfunction
-function! s:Sequence(elems) abort
+endfunction "}}}
+function! s:Sequence(elems) abort "{{{
   "echom string(a:elems)
   let sequence = a:elems
   if len(sequence) > 1
@@ -202,8 +193,8 @@ function! s:Sequence(elems) abort
   endif
   "echom 'Sequence: ' . result
   return result
-endfunction
-function! s:Prefix(elems) abort
+endfunction "}}}
+function! s:Prefix(elems) abort "{{{
   "echom string(a:elems)
   let suffix = a:elems[1]
   if len(a:elems[0]) > 0
@@ -214,8 +205,8 @@ function! s:Prefix(elems) abort
   endif
   "echom 'Prefix: ' . result
   return result
-endfunction
-function! s:Suffix(elems) abort
+endfunction "}}}
+function! s:Suffix(elems) abort "{{{
   "echom string(a:elems)
   let primary = a:elems[0]
   if len(a:elems[1]) > 0
@@ -226,8 +217,8 @@ function! s:Suffix(elems) abort
   endif
   "echom 'Suffix: ' . result
   return result
-endfunction
-function! s:Primary(elems) abort
+endfunction "}}}
+function! s:Primary(elems) abort "{{{
   "echom 'Primary: '.string(a:elems)
   let len = len(a:elems)
   if type(a:elems) == type('')
@@ -239,138 +230,144 @@ function! s:Primary(elems) abort
   endif
   "echom 'Primary: ' . result
   return result
-endfunction
-function! s:Callback(elems) abort
+endfunction "}}}
+function! s:Callback(elems) abort "{{{
   let callback = a:elems[1]
   "echom 'Callback: ' . callback
   return callback
-endfunction
-function! s:Label(elems) abort
+endfunction "}}}
+function! s:Label(elems) abort "{{{
   "echom string(a:elems)
   let result = "'".a:elems[1]."'"
   "echom 'Label: ' . result
   return result
-endfunction
-function! s:Identifier(elems) abort
+endfunction "}}}
+function! s:Identifier(elems) abort "{{{
   "echom string(a:elems)
   let id = a:elems
   "echom 'Identifier: ' . id
   return id
-endfunction
-function! s:Regex(elems) abort
+endfunction "}}}
+function! s:Regex(elems) abort "{{{
   "echom string(a:elems)
   let regex = 'p.e('.a:elems.')'
   "echom 'Regex: ' . regex
   return regex
-endfunction
-function! s:Dquoted_string(elems) abort
+endfunction "}}}
+function! s:Dquoted_string(elems) abort "{{{
   "echom string(a:elems)
   let dquoted_string = a:elems[0].join(a:elems[1], '').a:elems[2]
   "echom 'Dquoted_string: ' . dquoted_string
   return dquoted_string
-endfunction
-function! s:Squoted_string(elems) abort
+endfunction "}}}
+function! s:Squoted_string(elems) abort "{{{
   "echom string(a:elems)
   let squoted_string = a:elems[0].join(a:elems[1], '').a:elems[2]
   "echom 'Squoted_string: ' . squoted_string
   return squoted_string
-endfunction
-function! s:Escaped_dquote(elems) abort
+endfunction "}}}
+function! s:Escaped_dquote(elems) abort "{{{
   "echom string(a:elems)
   let escaped_dquote = a:elems[0]
   "echom 'Escaped_dquote: ' . escaped_dquote
   return escaped_dquote
-endfunction
-function! s:Double_backslash(elems) abort
+endfunction "}}}
+function! s:Double_backslash(elems) abort "{{{
   "echom string(a:elems)
   let double_backslash = a:elems[0]
   "echom 'Double_backslash: ' . double_backslash
   return double_backslash
-endfunction
-function! s:Backslash(elems) abort
+endfunction "}}}
+function! s:Backslash(elems) abort "{{{
   "echom string(a:elems)
   let backslash = a:elems[0]
   "echom 'Backslash: ' . backslash
   return backslash
-endfunction
-function! s:Dquote(elems) abort
+endfunction "}}}
+function! s:Dquote(elems) abort "{{{
   "echom string(a:elems)
   let dquote = a:elems[0]
   "echom 'Dquote: ' . dquote
   return dquote
-endfunction
-function! s:Double_squote(elems) abort
+endfunction "}}}
+function! s:Double_squote(elems) abort "{{{
   let double_squote = a:elems[0]
   "echom 'Double_squote: ' . double_squote
   return double_squote
-endfunction
-function! s:Squote(elems) abort
+endfunction "}}}
+function! s:Squote(elems) abort "{{{
   let squote = a:elems[0]
   "echom 'Squote: ' . squote
   return squote
-endfunction
-function! s:Right_arrow(elems) abort
+endfunction "}}}
+function! s:Right_arrow(elems) abort "{{{
   let right_arrow = a:elems[0]
   "echom 'Right_arrow: ' . right_arrow
   return right_arrow
-endfunction
-function! s:Mallet(elems) abort
+endfunction "}}}
+function! s:Mallet(elems) abort "{{{
   let mallet = a:elems
   "echom 'Mallet: ' . mallet
   return mallet
-endfunction
-function! s:Or(elems) abort
+endfunction "}}}
+function! s:Or(elems) abort "{{{
   let or = a:elems[0]
   "echom 'Or: ' . or
   return or
-endfunction
-function! s:Not(elems) abort
+endfunction "}}}
+function! s:Not(elems) abort "{{{
   let not = a:elems[0]
   "echom 'Not: ' . not
   return not
-endfunction
-function! s:Question(elems) abort
+endfunction "}}}
+function! s:Question(elems) abort "{{{
   let question = a:elems[0]
   "echom 'Question: ' . question
   return question
-endfunction
-function! s:Star(elems) abort
+endfunction "}}}
+function! s:Star(elems) abort "{{{
   let star = a:elems[0]
   "echom 'Star: ' . star
   return star
-endfunction
-function! s:Plus(elems) abort
+endfunction "}}}
+function! s:Plus(elems) abort "{{{
   let plus = a:elems[0]
   "echom 'Plus: ' . plus
   return plus
-endfunction
-function! s:Close(elems) abort
+endfunction "}}}
+function! s:Close(elems) abort "{{{
   let close = a:elems[0]
   "echom 'Close: ' . close
   return close
-endfunction
-function! s:Open(elems) abort
+endfunction "}}}
+function! s:Open(elems) abort "{{{
   let open = a:elems[0]
   "echom 'Open: ' . open
   return open
-endfunction
-function! s:Gt(elems) abort
+endfunction "}}}
+function! s:Gt(elems) abort "{{{
   let gt = a:elems[0]
   "echom 'Gt: ' . gt
   return gt
-endfunction
-function! s:Lt(elems) abort
+endfunction "}}}
+function! s:Lt(elems) abort "{{{
   let lt = a:elems[0]
   "echom 'Lt: ' . lt
   return lt
-endfunction
+endfunction "}}}
 " }}}
+
+" Public interface {{{
 let vimpeg#peg#parser = s:p.GetSym('definition')
 function! vimpeg#peg#parse(lines) abort
   " Get rid of comment marks, if any.
   let result = map(copy(a:lines), 'substitute(v:val, ''^"\s*'', "", "")')
+  " Parse the lines
   call map(result, 'g:vimpeg#peg#parser.match(v:val).value')
+  " Split at newlines
   let result = eval(substitute(string(result), '\n', "', '", 'g'))
+  " Remove empty items
+  call filter(result, 'v:val != ""')
   return result
 endfunction
 
@@ -399,7 +396,7 @@ function! vimpeg#peg#writefile(bang, args) range abort
   let peg_commands = vimpeg#peg#parse(lines)
   let header = [
         \ '" Parser compiled on '.strftime('%c').',',
-        \ '" with VimPEG v0.1 and VimPEG Compiler v'.g:vimpeg_peg_version.'',
+        \ '" with VimPEG v'.g:vimpeg_version.' and VimPEG Compiler v'.g:vimpeg_peg_version.'',
         \ '" from "'.source_path.'"',
         \ '" with the following grammar:',
         \ ''
@@ -411,6 +408,7 @@ function! vimpeg#peg#writefile(bang, args) range abort
         \ peg_commands
   return writefile(content, parser_path) + 1
 endfunction
+" }}}
 
 nore <leader><leader> :w<bar>so %<bar>echo join(vimpeg#peg#parse([getline('.')]), "\n")<CR>
 
