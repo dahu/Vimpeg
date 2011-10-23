@@ -18,7 +18,11 @@ let vimpeg_peg_version = '0.1'
 let s:save_cpo = &cpo
 set cpo&vim
 
-let s:p = Vimpeg({'skip_white': 1})
+let s:p = vimpeg#parser({'skip_white': 1})
+
+function! s:SID()
+  return matchstr(expand('<sfile>'), '<SNR>\d\+_\zeSID$')
+endfun
 
 " Ideas {{{
 " - For later, maybe create callback functions populated with vars
@@ -357,10 +361,6 @@ function! s:Lt(elems)
   return lt
 endfunction
 " }}}
-function! s:SID()
-  return matchstr(expand('<sfile>'), '<SNR>\d\+_\zeSID$')
-endfun
-
 let vimpeg#peg#parser = s:p.GetSym('definition')
 function! vimpeg#peg#parse(lines) abort
   " Get rid of comment marks, if any.
@@ -370,17 +370,10 @@ function! vimpeg#peg#parse(lines) abort
   return result
 endfunction
 
-function! vimpeg#peg#writefile(line1, line2, bang, ...) abort
-  let source_path = a:0 == 2 ? a:2 : expand('%')
-  let parser_path = a:0 ? a:1 : expand('%:h:r').'vim'
-  let parser_name = fnamemodify(parser_path, ':t:r')
-
-  " Get the source
-  if source_path == expand('%')
-    let lines = getline(a:line1, a:line2)
-  else
-    let lines = readfile(source_name)
-  endif
+function! vimpeg#peg#writefile(bang, args) range abort
+  let source_path = len(a:args) == 2 ? a:args[1] : expand('%')
+  let parser_path = len(a:args) > 0 ? a:args[0] : expand('%:p:r:h').'.vim'
+  let parser_name = fnamemodify(parser_path, ':p:t:r')
 
   " See if file exists
   if glob(parser_path) != '' && !a:bang
@@ -390,18 +383,29 @@ function! vimpeg#peg#writefile(line1, line2, bang, ...) abort
     return 0
   endif
 
+  " Get the source
+  if source_path == expand('%')
+    let lines = getline(a:firstline, a:lastline)
+  else
+    let lines = readfile(source_path)
+  endif
+
   " Add comments marks if needed
   let peg_rules = map(copy(lines), 'v:val =~ ''^\s*"\s*'' ? v:val : ''" ''.v:val')
   let peg_commands = vimpeg#peg#parse(lines)
   let header = [
-        \ '" Parser compiled on '.strftime('%c').', ',
-        \ '" using VimPEG v0.1 and VimPEG Compiler v'.vimpeg_peg_version.'.'
-        \ '']
+        \ '" Parser compiled on '.strftime('%c').',',
+        \ '" with VimPEG v0.1 and VimPEG Compiler v'.g:vimpeg_peg_version.'',
+        \ '" from "'.source_path.'"',
+        \ '" with the following grammar:',
+        \ ''
+        \ ]
   let content =
         \ header +
         \ peg_rules +
+        \ [''] +
         \ peg_commands
-  return filewrite(parser_path)
+  return writefile(content, parser_path) + 1
 endfunction
 
 nore <leader><leader> :w<bar>so %<bar>echo join(vimpeg#peg#parse([getline('.')]), "\n")<CR>
@@ -409,4 +413,4 @@ nore <leader><leader> :w<bar>so %<bar>echo join(vimpeg#peg#parse([getline('.')])
 let &cpo = s:save_cpo
 unlet s:save_cpo
 
-" vim: et sw=2
+" vim: et sw=2 fdm=marker
