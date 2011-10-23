@@ -67,28 +67,27 @@ endfun
 " }}}
 
 " VimPEG syntax {{{
-" <definition>       ::= <label> <mallet> <expression> <callback>?
-" <expression>       ::= <sequence> ( <or> <sequence> )*
-" <sequence>         ::= <prefix>*
-" <prefix>           ::= <not>? <suffix>
-" <suffix>           ::= <primary> ( <question> | <star> | <plus> )?
-" <primary>          ::= <label> !<mallet> | <open> <expression> <close> | <regex>
-" <callback>         ::= <right_arrow> <identifier>
-" <label>            ::= <lt> <identifier> <gt>
-" <identifier>       ::= <ident_start> <ident_cont>?
-" <ident_cont>       ::= '\w\+'
-" <ident_start>      ::= '\h'
-" <regex>            ::= <dquoted_string> | <squoted_string>
-" <dquoted_string>   ::= <dquote> ( <double_backslash> | <escaped_dquote> | '[^"]' )* <dquote>
-" <squoted_string>   ::= <squote> ( "[^']" | <double_squote> )* <squote>
+" <definition>       ::= ( <label> <mallet> <expression> <callback>? )? <comment>? -> Definition
+" <expression>       ::= <sequence> ( <or> <sequence> )* -> Expression
+" <sequence>         ::= <prefix>* -> Sequence
+" <prefix>           ::= <not>? <suffix> -> Prefix
+" <suffix>           ::= <primary> ( <question> | <star> | <plus> )? -> Suffix
+" <primary>          ::= <label> !<mallet> | <open> <expression> <close> | <regex> -> Primary
+" <callback>         ::= <right_arrow> <identifier> -> Callback
+" <label>            ::= <lt> <identifier> <gt> -> Label
+" <identifier>       ::= '\h\w*' -> Identifier
+" <regex>            ::= <dquoted_string> | <squoted_string> -> Regex
+" <dquoted_string>   ::= <dquote> ( <double_backslash> | <escaped_dquote> | '[^"]' )* <dquote> -> Dquoted_string
+" <squoted_string>   ::= <squote> ( "[^']" | <double_squote> )* <squote> -> Squoted_string
 " <escaped_dquote>   ::= <backslash> <dquote>
 " <double_backslash> ::= <backslash> <backslash>
 " <backslash>        ::= '\'
 " <dquote>           ::= '"'
 " <double_squote>    ::= ''''''
 " <squote>           ::= "'"
+" <comment>          ::= '#.*$'
 " <right_arrow>      ::= '->'
-" <mallet>           ::= '::='
+" <mallet>           ::= '::=' # End of line
 " <or>               ::= '|'
 " <not>              ::= '!'
 " <question>         ::= '?'
@@ -96,13 +95,14 @@ endfun
 " <plus>             ::= '+'
 " <close>            ::= ')'
 " <open>             ::= '('
+" # whole line
 " <gt>               ::= '>'
 " <lt>               ::= '<'
 " }}}
 
 " Parser grammar {{{
 "let vimpeg#peg#parser = s:p.and(['label', 'mallet', 'expression', s:p.maybe_one('callback')],
-call s:p.and(['label', 'mallet', 'expression', s:p.maybe_one('callback')],
+call s:p.and([s:p.maybe_one(s:p.and(['label', 'mallet', 'expression', s:p.maybe_one('callback')])), s:p.maybe_one('comment')],
       \{'id': 'definition', 'on_match': s:SID().'Definition'})
 call s:p.and(['sequence', s:p.maybe_many(s:p.and(['or', 'sequence']))],
       \{'id': 'expression', 'on_match': s:SID().'Expression'})
@@ -118,30 +118,28 @@ call s:p.and(['right_arrow', 'identifier'],
       \{'id': 'callback', 'on_match': s:SID().'Callback'})
 call s:p.and(['lt', 'identifier', 'gt'],
       \{'id': 'label', 'on_match': s:SID().'Label'})
-call s:p.and(['ident_start', s:p.maybe_one('ident_cont')],
+call s:p.e('\h\w*',
       \{'id': 'identifier', 'on_match': s:SID().'Identifier'})
-call s:p.e('\w\+',
-      \{'id': 'ident_cont'})
-call s:p.e('\h',
-      \{'id': 'ident_start'})
-call s:p.or(['squoted_string', 'dquoted_string'],
+call s:p.or(['dquoted_string', 'squoted_string'],
       \{'id': 'regex', 'on_match': s:SID().'Regex'})
-call s:p.and(['dquote', s:p.maybe_many(s:p.or(['double_backslash', 'escaped_dquote', s:p.e('[^"]\+')])), 'dquote'],
+call s:p.and(['dquote', s:p.maybe_many(s:p.or(['double_backslash', 'escaped_dquote', s:p.e('[^"]')])), 'dquote'],
       \{'id': 'dquoted_string', 'on_match': s:SID().'Dquoted_string'})
-call s:p.and(['squote', s:p.maybe_many(s:p.or([s:p.e('[^'']\+'),'double_squote'])), 'squote'],
+call s:p.and(['squote', s:p.maybe_many(s:p.or([s:p.e("[^']"), 'double_squote'])), 'squote'],
       \{'id': 'squoted_string', 'on_match': s:SID().'Squoted_string'})
 call s:p.and(['backslash', 'dquote'],
-      \{'id': 'escaped_dquote', 'on_match': s:SID().'Escaped_dquote'})
+      \{'id': 'escaped_dquote'})
 call s:p.and(['backslash', 'backslash'],
-      \{'id': 'double_backslash', 'on_match': s:SID().'Double_backslash'})
+      \{'id': 'double_backslash'})
 call s:p.e('\',
       \{'id': 'backslash'})
 call s:p.e('"',
       \{'id': 'dquote'})
-call s:p.e("''",
+call s:p.e('''''',
       \{'id': 'double_squote'})
 call s:p.e("'",
       \{'id': 'squote'})
+call s:p.e('#.*$',
+      \{'id': 'comment'})
 call s:p.e('->',
       \{'id': 'right_arrow'})
 call s:p.e('::=',
@@ -169,12 +167,16 @@ call s:p.e('<',
 " Callback functions {{{
 function! s:Definition(elems) abort
   "echom string(a:elems)
-  let label = a:elems[0]
-  let mallet = a:elems[1]
-  let expression = a:elems[2]
-  let callback = len(a:elems[3]) > 0 ? a:elems[3][0] : ''
-  let result = 'call '.expression[:-2].",\n        \\{'id': ".label.
-        \(callback != '' ? ", 'on_match': ".string(callback) : '') . "})"
+  if len(a:elems[0]) > 0
+    let label = a:elems[0][0][0]
+    let mallet = a:elems[0][0][1]
+    let expression = a:elems[0][0][2]
+    let callback = len(a:elems[0][0][3]) > 0 ? a:elems[0][0][3][0] : ''
+    let result = 'call '.expression[:-2].",\n      \\{'id': ".label.
+          \(callback != '' ? ", 'on_match': ".string(callback) : '') . "})"
+  else
+    let result = ''
+  endif
   "echom 'Definition: ' . result
   return result
 endfunction
@@ -214,6 +216,7 @@ function! s:Prefix(elems) abort
   return result
 endfunction
 function! s:Suffix(elems) abort
+  "echom string(a:elems)
   let primary = a:elems[0]
   if len(a:elems[1]) > 0
     let suffix = a:elems[1][0]
@@ -249,7 +252,8 @@ function! s:Label(elems) abort
   return result
 endfunction
 function! s:Identifier(elems) abort
-  let id = a:elems[0] . join(a:elems[1], '')
+  "echom string(a:elems)
+  let id = a:elems
   "echom 'Identifier: ' . id
   return id
 endfunction
