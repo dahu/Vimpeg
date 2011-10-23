@@ -20,7 +20,7 @@ set cpo&vim
 
 let s:p = vimpeg#parser({'skip_white': 1})
 
-function! s:SID()
+function! s:SID() abort
   return matchstr(expand('<sfile>'), '<SNR>\d\+_\zeSID$')
 endfun
 
@@ -167,7 +167,7 @@ call s:p.e('<',
 " }}}
 
 " Callback functions {{{
-function! s:Definition(elems)
+function! s:Definition(elems) abort
   "echom string(a:elems)
   let label = a:elems[0]
   let mallet = a:elems[1]
@@ -178,7 +178,7 @@ function! s:Definition(elems)
   "echom 'Definition: ' . result
   return result
 endfunction
-function! s:Expression(elems)
+function! s:Expression(elems) abort
   "echom string(a:elems)
   if len(a:elems[1]) > 0
     "echom 1
@@ -190,7 +190,7 @@ function! s:Expression(elems)
   "echom 'Expression: ' . result
   return result
 endfunction
-function! s:Sequence(elems)
+function! s:Sequence(elems) abort
   "echom string(a:elems)
   let sequence = a:elems
   if len(sequence) > 1
@@ -201,7 +201,7 @@ function! s:Sequence(elems)
   "echom 'Sequence: ' . result
   return result
 endfunction
-function! s:Prefix(elems)
+function! s:Prefix(elems) abort
   "echom string(a:elems)
   let suffix = a:elems[1]
   if len(a:elems[0]) > 0
@@ -213,7 +213,7 @@ function! s:Prefix(elems)
   "echom 'Prefix: ' . result
   return result
 endfunction
-function! s:Suffix(elems)
+function! s:Suffix(elems) abort
   let primary = a:elems[0]
   if len(a:elems[1]) > 0
     let suffix = a:elems[1][0]
@@ -224,7 +224,7 @@ function! s:Suffix(elems)
   "echom 'Suffix: ' . result
   return result
 endfunction
-function! s:Primary(elems)
+function! s:Primary(elems) abort
   "echom 'Primary: '.string(a:elems)
   let len = len(a:elems)
   if type(a:elems) == type('')
@@ -237,125 +237,125 @@ function! s:Primary(elems)
   "echom 'Primary: ' . result
   return result
 endfunction
-function! s:Callback(elems)
+function! s:Callback(elems) abort
   let callback = a:elems[1]
   "echom 'Callback: ' . callback
   return callback
 endfunction
-function! s:Label(elems)
+function! s:Label(elems) abort
   "echom string(a:elems)
   let result = "'".a:elems[1]."'"
   "echom 'Label: ' . result
   return result
 endfunction
-function! s:Identifier(elems)
+function! s:Identifier(elems) abort
   let id = a:elems[0] . join(a:elems[1], '')
   "echom 'Identifier: ' . id
   return id
 endfunction
-function! s:Regex(elems)
+function! s:Regex(elems) abort
   "echom string(a:elems)
   let regex = 'p.e('.a:elems.')'
   "echom 'Regex: ' . regex
   return regex
 endfunction
-function! s:Dquoted_string(elems)
+function! s:Dquoted_string(elems) abort
   "echom string(a:elems)
   let dquoted_string = a:elems[0].join(a:elems[1], '').a:elems[2]
   "echom 'Dquoted_string: ' . dquoted_string
   return dquoted_string
 endfunction
-function! s:Squoted_string(elems)
+function! s:Squoted_string(elems) abort
   "echom string(a:elems)
   let squoted_string = a:elems[0].join(a:elems[1], '').a:elems[2]
   "echom 'Squoted_string: ' . squoted_string
   return squoted_string
 endfunction
-function! s:Escaped_dquote(elems)
+function! s:Escaped_dquote(elems) abort
   "echom string(a:elems)
   let escaped_dquote = a:elems[0]
   "echom 'Escaped_dquote: ' . escaped_dquote
   return escaped_dquote
 endfunction
-function! s:Double_backslash(elems)
+function! s:Double_backslash(elems) abort
   "echom string(a:elems)
   let double_backslash = a:elems[0]
   "echom 'Double_backslash: ' . double_backslash
   return double_backslash
 endfunction
-function! s:Backslash(elems)
+function! s:Backslash(elems) abort
   "echom string(a:elems)
   let backslash = a:elems[0]
   "echom 'Backslash: ' . backslash
   return backslash
 endfunction
-function! s:Dquote(elems)
+function! s:Dquote(elems) abort
   "echom string(a:elems)
   let dquote = a:elems[0]
   "echom 'Dquote: ' . dquote
   return dquote
 endfunction
-function! s:Double_squote(elems)
+function! s:Double_squote(elems) abort
   let double_squote = a:elems[0]
   "echom 'Double_squote: ' . double_squote
   return double_squote
 endfunction
-function! s:Squote(elems)
+function! s:Squote(elems) abort
   let squote = a:elems[0]
   "echom 'Squote: ' . squote
   return squote
 endfunction
-function! s:Right_arrow(elems)
+function! s:Right_arrow(elems) abort
   let right_arrow = a:elems[0]
   "echom 'Right_arrow: ' . right_arrow
   return right_arrow
 endfunction
-function! s:Mallet(elems)
+function! s:Mallet(elems) abort
   let mallet = a:elems
   "echom 'Mallet: ' . mallet
   return mallet
 endfunction
-function! s:Or(elems)
+function! s:Or(elems) abort
   let or = a:elems[0]
   "echom 'Or: ' . or
   return or
 endfunction
-function! s:Not(elems)
+function! s:Not(elems) abort
   let not = a:elems[0]
   "echom 'Not: ' . not
   return not
 endfunction
-function! s:Question(elems)
+function! s:Question(elems) abort
   let question = a:elems[0]
   "echom 'Question: ' . question
   return question
 endfunction
-function! s:Star(elems)
+function! s:Star(elems) abort
   let star = a:elems[0]
   "echom 'Star: ' . star
   return star
 endfunction
-function! s:Plus(elems)
+function! s:Plus(elems) abort
   let plus = a:elems[0]
   "echom 'Plus: ' . plus
   return plus
 endfunction
-function! s:Close(elems)
+function! s:Close(elems) abort
   let close = a:elems[0]
   "echom 'Close: ' . close
   return close
 endfunction
-function! s:Open(elems)
+function! s:Open(elems) abort
   let open = a:elems[0]
   "echom 'Open: ' . open
   return open
 endfunction
-function! s:Gt(elems)
+function! s:Gt(elems) abort
   let gt = a:elems[0]
   "echom 'Gt: ' . gt
   return gt
 endfunction
-function! s:Lt(elems)
+function! s:Lt(elems) abort
   let lt = a:elems[0]
   "echom 'Lt: ' . lt
   return lt
