@@ -182,7 +182,7 @@ function! s:Expression(elems) abort
   "echom string(a:elems)
   if len(a:elems[1]) > 0
     "echom 1
-    let result = 'p.or(['.a:elems[0]. ', '. join(a:elems[1][0][1:], ', ').'])'
+    let result = 'p.or(['.a:elems[0]. ', '. join(map(copy(a:elems[1]), 'v:val[1]'), ', ').'])'
   else
     "echom 2
     let result = a:elems[0]
