@@ -1,6 +1,5 @@
-so ../plugin/vimpeg.vim
-let p = Vimpeg({'skip_white': 1})
-let q = Vimpeg({'skip_white': 0})
+let p = vimpeg#parser({'skip_white': 1})
+let q = vimpeg#parsevimpeg#parser({'skip_white': 0})
 
 " Like coffeescript for VimL
 

@@ -1,8 +1,7 @@
 " Inline Arrow Expander - example VimPeg usage
 " Barry Arthur,  02 Oct 201
 
-so ../plugin/vimpeg.vim
-let p = Vimpeg({'skip_white': 0})
+let p = vimpeg#parser({'skip_white': 0})
 
 call p.and([p.e('"'), p.e('.\{-}\ze"'), p.e('"\s*')], {'id': 'dqstring'})
 call p.and([p.e("'"), p.e(".\\{-}\\ze'"), p.e("'\\s*")], {'id': 'sqstring'})

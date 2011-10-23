@@ -1,8 +1,7 @@
 " Sparkupy grammar for Vim maps
 " Barry Arthur, 02 Oct 2011
 
-so ../plugin/vimpeg.vim
-let p = Vimpeg({'skip_white': 1})
+let p = vimpeg#parser({'skip_white': 1})
 
 " NOTE: This is only a demonstration of the parser, not a viable
 " implementation of such a sparkupy map generator.

@@ -3,8 +3,7 @@
 " Last updated: 10 Oct 2011
 " version 0.4 - Ready for Release in Vimpeg Article
 
-so ../plugin/vimpeg.vim
-let p = Vimpeg({'skip_white': 1})
+let p = vimpeg#parser({'skip_white': 1})
 
 call p.e('"', {'id': 'comment'})
 call p.e('[[:alnum:]&]\+', {'id': 'value'})

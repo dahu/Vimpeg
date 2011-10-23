@@ -1,8 +1,7 @@
 " Parselt example of Vimpeg
 " Barry Arthur,  01 Oct 2011
 
-so ../plugin/vimpeg.vim
-let q = Vimpeg({'skip_white': 0})
+let q = vimpeg#parser({'skip_white': 0})
 
 let integer      =  q.and([q.e('\d\+'), 'maybe_space'], {'id': 'integer'})
 

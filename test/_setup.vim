@@ -1,5 +1,4 @@
-source ../plugin/vimpeg.vim
-let peg = Vimpeg()
+let peg = vimpeg#parser()
 
 " reused grammar elements
 let digits = peg.e('\d\+', {'id': 'digits', 'on_match': function('str2nr')})

@@ -2,7 +2,7 @@
 " Barry Arthur,  01 Oct 2011
 " Demonstrates: Summing a series of integers
 
-let p = Vimpeg({'skip_white': 1})
+let p = vimpeg#parser({'skip_white': 1})
 call p.e('\d\+', {'id': 'integer', 'on_match': 'Integer'})
 call p.and(['integer', p.e('+'), 'expression'], {'id': 'sum'})
 let expression =  p.or(['sum', 'integer'], {'id': 'expression'})

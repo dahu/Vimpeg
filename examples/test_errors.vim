@@ -1,8 +1,7 @@
 " Test Error Messages in Vimpeg
 " Barry Arthur, Oct 2011
 
-source ../plugin/vimpeg.vim
-let p = Vimpeg({'skip_white': 1})
+let p = vimpeg#parser({'skip_white': 1})
 
 let err1 = p.e('\d\+', {'id': 'integers'})
 

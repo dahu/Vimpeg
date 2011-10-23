@@ -1,9 +1,12 @@
-" Plugin: Vimpeg - A PEG parser for Vim
-" Author: Barry Arthur
-" Last Updated: 2011 06 17
+" Vim library file
+" Description:	Vimpeg - A PEG parser for Vim.
+" Maintainer:	Barry Arthur
+" Version:	0.1
+" Last Change:	2011 10 22
+" License:	Vim License (see :help license)
+" Location:	autoload/vimpeg.vim
 " Status: functional, if not beautiful
-" Next: Build a parser-generator that reads PEG format and produces Vimpeg calls
-"
+
 "TODO:
 " * Currently returns an 'elements' list of all matches - this might be useful
 "   in debugging, but not particularly useful afterwards.
@@ -15,7 +18,17 @@
 " * There are a bunch of TODO statements littering the code - they need doing
 "   too. :)
 
-function! Vimpeg(options)
+if exists("g:loaded_vimpeg_lib")
+"      \ || v:version < 700 || &compatible
+  "finish
+endif
+let g:loaded_vimpeg_lib = 1
+
+" Allow use of line continuation.
+let s:save_cpo = &cpo
+set cpo&vim
+
+function! vimpeg#parser(options)
   let peg = {}
   let peg.optSkipWhite = 0
   let peg.Symbols = {}
@@ -324,53 +337,7 @@ function! Vimpeg(options)
   return peg
 endfunction
 
-"{{{2 Testing
+let &cpo = s:save_cpo
+unlet s:save_cpo
 
-"let p = Vimpeg()
-
-"func! Speak(c)
-  "if a:c == 'cats'
-    "return "meow!"
-  "elseif a:c == 'dogs'
-    "return "woof!"
-  "endif
-"endfunc
-
-""let raining = p.e('raining')
-"let cats = p.e('cats', {'id': 'cats', 'on_match' : function('Speak')})
-""let cats = p.Expression.new('cats', {'id': 'cats', 'debug': 1})
-"echo cats.pmatch({'str' : "cats", 'pos' : 0})
-""let v = cats.pmatch({'str' : "cats", 'pos' : 0})['value'][0]
-""echo v
-
-"let dogs = p.e('dogs', {'id': 'dogs', 'on_match': function('Speak')})
-""let dogs = p.e('dogs')
-"let seqq = p.and([cats, dogs])
-"echo string(seqq.pmatch({'str' : "cats dogs", 'pos' : 0}))
-
-"let ordd = p.or([cats, dogs])
-"let mmny = p.maybe_many(cats)
-"let vmny = p.many(cats)
-"let mone = p.maybe_one(cats)
-"let mbtw = p.between(cats, 2, 3)
-"let emny = p.many(p.and([cats, dogs]))
-"let hasp = p.and([dogs, p.has(cats)])
-"let notp = p.and([dogs, p.not_has(cats)])
-
-
-"let grammar = peg.compile('and([raining, maybe_many(or([cats, dogs])))')
-"let grammar = peg.and([raining, peg.maybe_many(peg.or([cats, dogs])))
-"let grammar = peg.and([raining, cats])
-"echo grammar.match()
-finish
-
-raining cats dogs cats cats dogs
-
-" standard EBNF for PEGs
-" NUMBER | "(" & Sum & ")"
-" number = p.e('\d\+')
-" lb = p.e('(')
-" rb = p.e(')')
-" p.or([number, p.and([lb, sum, rb])])
-
-" vim: fdm=marker
+" vim: et sw=2 fdm=marker

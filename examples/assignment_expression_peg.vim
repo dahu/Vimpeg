@@ -1,8 +1,7 @@
 " Assignment Expression PEG
 " Barry Arthur, Jun 2011
 
-source ../plugin/vimpeg.vim
-let p = Vimpeg({'skip_white': 1})
+let p = vimpeg#parser({'skip_white': 1})
 
 "Grammar for Jack Crenshaw's Assignment Expression Parser (Part 3):
   "<assignment>  ::=  <name> = <expression>

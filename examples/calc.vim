@@ -1,5 +1,4 @@
-so ../plugin/vimpeg.vim
-let p = Vimpeg({'skip_white': 1})
+let p = vimpeg#parser({'skip_white': 1})
 
 " Simple Calculator Grammar, Rooted at 'calc'
 " (grammar provider side)

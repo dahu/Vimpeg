@@ -6,8 +6,7 @@
 " A real implementation would handle nested #if[n]def blocks - this example
 " DOES NOT
 
-so ../plugin/vimpeg.vim
-let p = Vimpeg({'skip_white': 1})
+let p = vimpeg#parser({'skip_white': 1})
 
 call  p.e('#ifdef',  {'id': 'ifdef'})
 call  p.e('#ifndef', {'id': 'ifndef'})
