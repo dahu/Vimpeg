@@ -2,7 +2,7 @@ Todo
 ====
 
 
-1. We need to generate a file with the grammar commented atop and the
+1. [done] We need to generate a file with the grammar commented atop and the
    peg statements below
 2. We need to execute the peg statements to have them vivified in the
    current session
@@ -15,5 +15,5 @@ Todo
 6. We need at least one good example demonstrating this -- better yet,
    get all of the existing examples and re-design them into this new
    workflow
-7. We need to usr_41 the vimpeg lib itself
+7. [done] We need to usr_41 the vimpeg lib itself
 
