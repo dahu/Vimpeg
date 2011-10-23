@@ -1,25 +1,24 @@
-" <definition>       ::= <label> <mallet> <expression> <callback>?
-" <expression>       ::= <sequence> ( <or> <sequence> )*
-" <sequence>         ::= <prefix>*
-" <prefix>           ::= <not>? <suffix>
-" <suffix>           ::= <primary> ( <question> | <star> | <plus> )?
-" <primary>          ::= <label> !<mallet> | <open> <expression> <close> | <regex>
-" <callback>         ::= <right_arrow> <identifier>
-" <label>            ::= <lt> <identifier> <gt>
-" <identifier>       ::= <ident_start> <ident_cont>?
-" <ident_cont>       ::= '\w\+'
-" <ident_start>      ::= '\h'
-" <regex>            ::= <dquoted_string> | <squoted_string>
-" <dquoted_string>   ::= <dquote> ( <double_backslash> | <escaped_dquote> | '[^"]' )* <dquote>
-" <squoted_string>   ::= <squote> ( "[^']" | <double_squote> )* <squote>
+" <definition>       ::= ( <label> <mallet> <expression> <callback>? )? <comment>? -> Definition
+" <expression>       ::= <sequence> ( <or> <sequence> )* -> Expression
+" <sequence>         ::= <prefix>* -> Sequence
+" <prefix>           ::= <not>? <suffix> -> Prefix
+" <suffix>           ::= <primary> ( <question> | <star> | <plus> )? -> Suffix
+" <primary>          ::= <label> !<mallet> | <open> <expression> <close> | <regex> -> Primary
+" <callback>         ::= <right_arrow> <identifier> -> Callback
+" <label>            ::= <lt> <identifier> <gt> -> Label
+" <identifier>       ::= '\h\w*' -> Identifier
+" <regex>            ::= <dquoted_string> | <squoted_string> -> Regex
+" <dquoted_string>   ::= <dquote> ( <double_backslash> | <escaped_dquote> | '[^"]' )* <dquote> -> Dquoted_string
+" <squoted_string>   ::= <squote> ( "[^']" | <double_squote> )* <squote> -> Squoted_string
 " <escaped_dquote>   ::= <backslash> <dquote>
 " <double_backslash> ::= <backslash> <backslash>
 " <backslash>        ::= '\'
 " <dquote>           ::= '"'
 " <double_squote>    ::= ''''''
 " <squote>           ::= "'"
+" <comment>          ::= '#.*$'
 " <right_arrow>      ::= '->'
-" <mallet>           ::= '::='
+" <mallet>           ::= '::=' # End of line
 " <or>               ::= '|'
 " <not>              ::= '!'
 " <question>         ::= '?'
@@ -27,5 +26,6 @@
 " <plus>             ::= '+'
 " <close>            ::= ')'
 " <open>             ::= '('
+" # whole line
 " <gt>               ::= '>'
 " <lt>               ::= '<'
