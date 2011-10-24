@@ -289,10 +289,12 @@ function! s:Callback(elems) abort "{{{
 endfunction "}}}
 function! s:Option(elems) abort "{{{
   "echom string(a:elems)
-  if s:setting_options == 0
-    echoerr 'All options must be declared before definitions.'
+  if exists('s:parser_options')
+    if s:setting_options == 0
+      echoerr 'All options must be declared before definitions.'
+    endif
+    exec 'let s:parser_options.'.a:elems[1][0].' = '.a:elems[3]
   endif
-  exec 'let s:parser_options.'.a:elems[1][0].' = '.a:elems[3]
   "echom 'Option: let s:parser_options.'.a:elems[1][0].' = '.a:elems[3]
   return ''
 endfunction "}}}
@@ -444,12 +446,13 @@ endfunction "}}}
 
 " Public interface {{{
 let vimpeg#peg#parser = s:p.GetSym('line')
+
 function! vimpeg#peg#parse(lines) abort
   let s:setting_options = 1
   " Get rid of comment marks, if any.
   "let result = map(copy(a:lines), 'substitute(v:val, ''^"\s*'', "", "")')
   " Parse the lines
-  call map(filter(result, 'v:val != ""'), 'g:vimpeg#peg#parser.match(v:val).value')
+  let result = map(filter(copy(a:lines), 'v:val != ""'), 'g:vimpeg#peg#parser.match(v:val).value')
   " Split at newlines
   let result = eval(substitute(string(result), '\n', "', '", 'g'))
   " Remove empty items
@@ -491,7 +494,7 @@ function! vimpeg#peg#writefile(bang, args) range abort
   let content = [
         \ '" Parser compiled on '.strftime('%c').',',
         \ '" with VimPEG v'.g:vimpeg_version.' and VimPEG Compiler v'.g:vimpeg_peg_version.'',
-        \ '" from "'.source_path.'"',
+        \ '" from "'.fnamemodify(source_path, ':p:t').'"',
         \ '" with the following grammar:',
         \ ''
         \ ] +
@@ -514,7 +517,7 @@ function! vimpeg#peg#writefile(bang, args) range abort
 endfunction
 " }}}
 
-nore <leader><leader> :w<bar>so %<bar>echo join(vimpeg#peg#parse([getline('.')]), "\n")<CR>
+nore <leader><leader> :w<bar>so %<bar>echo join(vimpeg#peg#parse(map(getline('.', '.'), 'substitute(v:val, ''^"\s*'', "", "")')), "\n")<CR>
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
