@@ -12,7 +12,7 @@ if exists("g:loaded_vimpeg")
 endif
 let g:loaded_vimpeg = 1
 
-g:vimpeg_version = '0.1'
+let g:vimpeg_version = '0.1'
 
 " Allow use of line continuation.
 let s:save_cpo = &cpo

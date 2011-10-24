@@ -18,7 +18,6 @@ let vimpeg_peg_version = '0.1'
 let s:save_cpo = &cpo
 set cpo&vim
 
-let s:parser_options = {}
 let s:p = vimpeg#parser({'skip_white': 1})
 
 function! s:SID() abort
@@ -87,7 +86,7 @@ endfun
 " <backslash>        ::= '\'
 " <number>           ::= '\%(0\|[1-9]\d*\)\%(\.\d\+\)\?'
 " <dquote>           ::= '"'
-" <double_squote>    ::= ''''''
+" <double_squote>    ::= "''"
 " <squote>           ::= "'"
 " <comment>          ::= '#.*$'
 " <right_arrow>      ::= '->'
@@ -205,11 +204,14 @@ function! s:Definition(elems) abort "{{{
   if len(a:elems[0]) > 0
     " Definition
     let label = a:elems[0][0][0]
+    if !exists('s:root_element')
+      exec 'let s:root_element = '.label
+    endif
     let mallet = a:elems[0][0][1]
     let expression = a:elems[0][0][2]
-    let expression = expression =~ '^''' ? 'p.and(['.expression.'],' : expression
+    let expression = expression =~ '^''' ? 's:p.and(['.expression.'],' : expression[:2]
     let callback = len(a:elems[0][0][3]) > 0 ? a:elems[0][0][3][0] : ''
-    let result = 'call '.expression[:-2].",\n      \\{'id': ".label.
+    let result = 'call '.expression.",\n      \\{'id': ".label.
           \(callback != '' ? ", 'on_match': ".string(callback) : '') . "})"
   else
     " Only a comment
@@ -221,7 +223,7 @@ endfunction "}}}
 function! s:Expression(elems) abort "{{{
   "echom string(a:elems)
   if len(a:elems[1]) > 0
-    let result = 'p.or(['.a:elems[0]. ', '. join(map(copy(a:elems[1]), 'v:val[1]'), ', ').'])'
+    let result = 's:p.or(['.a:elems[0]. ', '. join(map(copy(a:elems[1]), 'v:val[1]'), ', ').'])'
   else
     let result = a:elems[0]
   endif
@@ -232,7 +234,7 @@ function! s:Sequence(elems) abort "{{{
   "echom string(a:elems)
   let sequence = a:elems
   if len(sequence) > 1
-    let result = 'p.and(['.join(sequence, ', ').'])'
+    let result = 's:p.and(['.join(sequence, ', ').'])'
   else
     let result = sequence[0]
   endif
@@ -244,7 +246,7 @@ function! s:Prefix(elems) abort "{{{
   let suffix = a:elems[1]
   if len(a:elems[0]) > 0
     let prefix = a:elems[0][0]
-    let result = 'p.not_has('.suffix.')'
+    let result = 's:p.not_has('.suffix.')'
   else
     let result = suffix
   endif
@@ -256,7 +258,7 @@ function! s:Suffix(elems) abort "{{{
   let primary = a:elems[0]
   if len(a:elems[1]) > 0
     let suffix = a:elems[1][0]
-    let result = 'p.'.(suffix == '*' ? 'maybe_many' : (suffix == '+' ? 'many' : 'maybe_one')) . '('.primary.')'
+    let result = 's:p.'.(suffix == '*' ? 'maybe_many' : (suffix == '+' ? 'many' : 'maybe_one')) . '('.primary.')'
   else
     let result = primary
   endif
@@ -309,7 +311,7 @@ function! s:Option_value(elems) abort "{{{
 endfunction "}}}
 function! s:Regex(elems) abort "{{{
   "echom string(a:elems)
-  let regex = 'p.e('.a:elems.')'
+  let regex = 's:p.e('.a:elems.')'
   "echom 'Regex: ' . regex
   return regex
 endfunction "}}}
@@ -447,9 +449,7 @@ function! vimpeg#peg#parse(lines) abort
 endfunction
 
 function! vimpeg#peg#writefile(bang, args) range abort
-  let source_path = len(a:args) == 2 ? a:args[1] : expand('%')
   let parser_path = len(a:args) > 0 ? a:args[0] : expand('%:p:r:h').'.vim'
-  let parser_name = fnamemodify(parser_path, ':p:t:r')
 
   " See if file exists
   if glob(parser_path) != '' && !a:bang
@@ -460,6 +460,9 @@ function! vimpeg#peg#writefile(bang, args) range abort
   endif
 
   " Get the source
+  let source_path = len(a:args) == 2 ? a:args[1] : expand('%')
+  let s:parser_options = {}
+  unlet! let s:root_element
   if source_path == expand('%')
     let lines = getline(a:firstline, a:lastline)
   else
@@ -469,19 +472,28 @@ function! vimpeg#peg#writefile(bang, args) range abort
   " Add comments marks if needed
   let peg_rules = map(copy(lines), 'v:val =~ ''^\s*"\s*'' ? v:val : ''" ''.v:val')
   let peg_commands = vimpeg#peg#parse(lines)
-  let header = [
+  let parser_name = get(s:parser_options, 'parser_name', fnamemodify(source_path, ':p:t:r'))
+  let root_element = get(s:parser_options, 'root_element', s:root_element)
+  let content = [
         \ '" Parser compiled on '.strftime('%c').',',
         \ '" with VimPEG v'.g:vimpeg_version.' and VimPEG Compiler v'.g:vimpeg_peg_version.'',
         \ '" from "'.source_path.'"',
         \ '" with the following grammar:',
         \ ''
-        \ ]
-  let content =
-        \ header +
+        \ ] +
         \ peg_rules +
-        \ [''] +
-        \ peg_commands
-  return writefile(content, parser_path) + 1
+        \ ['',
+        \ 'let s:p = vimpeg#parser('. string(s:parser_options).')'] +
+        \ peg_commands +
+        \ ['',
+        \ 'let g:'.parser_name.' = s:p.GetSym('''.root_element.''')']
+
+  let result =  writefile(content, parser_path) + 1
+  echohl WarningMsg
+  echom 'The parser was built into "'.parser_path.'".'
+  echohl None
+  exec 'so '.parser_path
+  return result
 endfunction
 " }}}
 
