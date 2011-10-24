@@ -207,6 +207,7 @@ function! s:Definition(elems) abort "{{{
     let label = a:elems[0][0][0]
     let mallet = a:elems[0][0][1]
     let expression = a:elems[0][0][2]
+    let expression = expression =~ '^''' ? 'p.and(['.expression.'],' : expression
     let callback = len(a:elems[0][0][3]) > 0 ? a:elems[0][0][3][0] : ''
     let result = 'call '.expression[:-2].",\n      \\{'id': ".label.
           \(callback != '' ? ", 'on_match': ".string(callback) : '') . "})"
