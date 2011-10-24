@@ -18,6 +18,7 @@ let vimpeg_peg_version = '0.1'
 let s:save_cpo = &cpo
 set cpo&vim
 
+let s:parser_options = {}
 let s:p = vimpeg#parser({'skip_white': 1})
 
 function! s:SID() abort
@@ -58,7 +59,14 @@ endfun
 " EndOfFile <- !.
 " }}}
 
-" VimPEG grammar {{{
+" # VimPEG grammar {{{
+" .skip_white = true
+" .skip_all = false
+" .string_option = 'abc'
+" .other_string_option = "def"
+" .numeric_option = 3 # a comment
+" .float_option = 2.5
+" <line>             ::= <option> | <definition>
 " <definition>       ::= ( <label> <mallet> <expression> <callback>? )? <comment>? -> Definition
 " <expression>       ::= <sequence> ( <or> <sequence> )* -> Expression
 " <sequence>         ::= <prefix>* -> Sequence
@@ -66,6 +74,9 @@ endfun
 " <suffix>           ::= <primary> ( <question> | <star> | <plus> )? -> Suffix
 " <primary>          ::= <label> !<mallet> | <open> <expression> <close> | <regex> -> Primary
 " <callback>         ::= <right_arrow> <identifier> -> Callback
+" <option>           ::= <dot> <option_name> <equal> <option_value> <comment>? -> Option
+" <option_name>      ::= <identifier>
+" <option_value>     ::= <squoted_string> | <squoted_string> | <number> | <boolean>
 " <label>            ::= <lt> <identifier> <gt> -> Label
 " <identifier>       ::= '\h\w*' -> Identifier
 " <regex>            ::= <dquoted_string> | <squoted_string> -> Regex
@@ -74,12 +85,17 @@ endfun
 " <escaped_dquote>   ::= <backslash> <dquote>
 " <double_backslash> ::= <backslash> <backslash>
 " <backslash>        ::= '\'
+" <number>           ::= '\%(0\|[1-9]\d*\)\%(\.\d\+\)\?'
 " <dquote>           ::= '"'
 " <double_squote>    ::= ''''''
 " <squote>           ::= "'"
 " <comment>          ::= '#.*$'
 " <right_arrow>      ::= '->'
 " <mallet>           ::= '::=' # End of line
+" <boolean>          ::= <true> | <false>
+" <true>             ::= 'true\|on' -> True
+" <false>            ::= 'false\|off' -> False
+" <equal>            ::= '='
 " <or>               ::= '|'
 " <not>              ::= '!'
 " <question>         ::= '?'
@@ -88,11 +104,14 @@ endfun
 " <close>            ::= ')'
 " <open>             ::= '('
 " # whole line
+" <dot>              ::= '\.'
 " <gt>               ::= '>'
 " <lt>               ::= '<'
-" }}}
+" # }}}
 
 " Parser building {{{
+call s:p.or(['option', 'definition'],
+      \{'id': 'line'})
 call s:p.and([s:p.maybe_one(s:p.and(['label', 'mallet', 'expression', s:p.maybe_one('callback')])), s:p.maybe_one('comment')],
       \{'id': 'definition', 'on_match': s:SID().'Definition'})
 call s:p.and(['sequence', s:p.maybe_many(s:p.and(['or', 'sequence']))],
@@ -107,6 +126,12 @@ call s:p.or([s:p.and(['label', s:p.not_has('mallet')]), s:p.and(['open', 'expres
       \{'id': 'primary', 'on_match': s:SID().'Primary'})
 call s:p.and(['right_arrow', 'identifier'],
       \{'id': 'callback', 'on_match': s:SID().'Callback'})
+call s:p.and(['dot', 'option_name', 'equal', 'option_value', s:p.maybe_one('comment')],
+      \{'id': 'option', 'on_match': s:SID().'Option'})
+call s:p.and(['identifier'],
+      \{'id': 'option_name'})
+call s:p.or(['squoted_string', 'dquoted_string', 'boolean', 'number'],
+      \{'id': 'option_value', 'on_match': s:SID().'Option_value'})
 call s:p.and(['lt', 'identifier', 'gt'],
       \{'id': 'label', 'on_match': s:SID().'Label'})
 call s:p.e('\h\w*',
@@ -123,6 +148,8 @@ call s:p.and(['backslash', 'backslash'],
       \{'id': 'double_backslash'})
 call s:p.e('\',
       \{'id': 'backslash'})
+call s:p.e('\%(0\|[1-9]\d*\)\%(\.\d\+\)\?',
+      \{'id': 'number'})
 call s:p.e('"',
       \{'id': 'dquote'})
 call s:p.e('''''',
@@ -135,6 +162,14 @@ call s:p.e('->',
       \{'id': 'right_arrow'})
 call s:p.e('::=',
       \{'id': 'mallet'})
+call s:p.or(['true', 'false'],
+      \{'id': 'boolean'})
+call s:p.e('\ctrue\|on',
+      \{'id': 'true', 'on_match': s:SID().'True'})
+call s:p.e('\cfalse\|off',
+      \{'id': 'false', 'on_match': s:SID().'False'})
+call s:p.e('=',
+      \{'id': 'equal'})
 call s:p.e('|',
       \{'id': 'or'})
 call s:p.e('!',
@@ -149,6 +184,8 @@ call s:p.e(')',
       \{'id': 'close'})
 call s:p.e('(',
       \{'id': 'open'})
+call s:p.e('\.',
+      \{'id': 'dot'})
 call s:p.e('>',
       \{'id': 'gt'})
 call s:p.e('<',
@@ -156,8 +193,15 @@ call s:p.e('<',
 " }}}
 
 " Callback functions {{{
+function! s:Line(elems) abort "{{{
+  "echom string(a:elems)
+  let result = a:elems
+  "echom 'Line: ' . result
+  return result
+endfunction "}}}
 function! s:Definition(elems) abort "{{{
   "echom string(a:elems)
+  let s:setting_options = 0
   if len(a:elems[0]) > 0
     " Definition
     let label = a:elems[0][0][0]
@@ -236,6 +280,15 @@ function! s:Callback(elems) abort "{{{
   "echom 'Callback: ' . callback
   return callback
 endfunction "}}}
+function! s:Option(elems) abort "{{{
+  "echom string(a:elems)
+  if s:setting_options == 0
+    echoerr 'All options must be declared before definitions.'
+  endif
+  exec 'let s:parser_options.'.a:elems[1][0].' = '.a:elems[3]
+  "echom 'Option: let s:parser_options.'.a:elems[1][0].' = '.a:elems[3]
+  return ''
+endfunction "}}}
 function! s:Label(elems) abort "{{{
   "echom string(a:elems)
   let result = "'".a:elems[1]."'"
@@ -247,6 +300,11 @@ function! s:Identifier(elems) abort "{{{
   let id = a:elems
   "echom 'Identifier: ' . id
   return id
+endfunction "}}}
+function! s:Option_value(elems) abort "{{{
+  "echom string(a:elems)
+  "echom 'Option_value: '.string(a:elems)
+  return a:elems
 endfunction "}}}
 function! s:Regex(elems) abort "{{{
   "echom string(a:elems)
@@ -310,6 +368,21 @@ function! s:Mallet(elems) abort "{{{
   "echom 'Mallet: ' . mallet
   return mallet
 endfunction "}}}
+function! s:Boolean(elems) abort "{{{
+  "echom string(a:elems)
+  "echom 'Boolean: ' . string(a:elems)
+  return a:elems
+endfunction "}}}
+function! s:True(elems) abort "{{{
+  "echom string(a:elems)
+  "echom 'True: ' . string(a:elems)
+  return 1
+endfunction "}}}
+function! s:False(elems) abort "{{{
+  "echom string(a:elems)
+  "echom 'False: ' . string(a:elems)
+  return 0
+endfunction "}}}
 function! s:Or(elems) abort "{{{
   let or = a:elems[0]
   "echom 'Or: ' . or
@@ -358,8 +431,9 @@ endfunction "}}}
 " }}}
 
 " Public interface {{{
-let vimpeg#peg#parser = s:p.GetSym('definition')
+let vimpeg#peg#parser = s:p.GetSym('line')
 function! vimpeg#peg#parse(lines) abort
+  let s:setting_options = 1
   " Get rid of comment marks, if any.
   let result = map(copy(a:lines), 'substitute(v:val, ''^"\s*'', "", "")')
   " Parse the lines
