@@ -193,13 +193,13 @@ call s:p.e('<',
 
 " Callback functions {{{
 function! s:Line(elems) abort "{{{
-  "echom string(a:elems)
+  echom string(a:elems)
   let result = a:elems
-  "echom 'Line: ' . result
+  echom 'Line: ' . result
   return result
 endfunction "}}}
 function! s:Definition(elems) abort "{{{
-  "echom string(a:elems)
+  echom string(a:elems)
   let s:setting_options = 0
   if len(a:elems[0]) > 0
     " Definition
@@ -209,7 +209,8 @@ function! s:Definition(elems) abort "{{{
     endif
     let mallet = a:elems[0][0][1]
     let expression = a:elems[0][0][2]
-    let expression = expression =~ '^''' ? 's:p.and(['.expression.'],' : expression[:2]
+    echom expression
+    let expression = expression =~ '^''' ? 's:p.and(['.expression.'],' : expression[:-2]
     let callback = len(a:elems[0][0][3]) > 0 ? a:elems[0][0][3][0] : ''
     let result = 'call '.expression.",\n      \\{'id': ".label.
           \(callback != '' ? ", 'on_match': ".string(callback) : '') . "})"
@@ -217,32 +218,32 @@ function! s:Definition(elems) abort "{{{
     " Only a comment
     let result = ''
   endif
-  "echom 'Definition: ' . result
+  echom 'Definition: ' . result
   return result
 endfunction "}}}
 function! s:Expression(elems) abort "{{{
-  "echom string(a:elems)
+  echom string(a:elems)
   if len(a:elems[1]) > 0
     let result = 's:p.or(['.a:elems[0]. ', '. join(map(copy(a:elems[1]), 'v:val[1]'), ', ').'])'
   else
     let result = a:elems[0]
   endif
-  "echom 'Expression: ' . result
+  echom 'Expression: ' . result
   return result
 endfunction "}}}
 function! s:Sequence(elems) abort "{{{
-  "echom string(a:elems)
+  echom string(a:elems)
   let sequence = a:elems
   if len(sequence) > 1
     let result = 's:p.and(['.join(sequence, ', ').'])'
   else
     let result = sequence[0]
   endif
-  "echom 'Sequence: ' . result
+  echom 'Sequence: ' . result
   return result
 endfunction "}}}
 function! s:Prefix(elems) abort "{{{
-  "echom string(a:elems)
+  echom string(a:elems)
   let suffix = a:elems[1]
   if len(a:elems[0]) > 0
     let prefix = a:elems[0][0]
@@ -250,11 +251,11 @@ function! s:Prefix(elems) abort "{{{
   else
     let result = suffix
   endif
-  "echom 'Prefix: ' . result
+  echom 'Prefix: ' . result
   return result
 endfunction "}}}
 function! s:Suffix(elems) abort "{{{
-  "echom string(a:elems)
+  echom string(a:elems)
   let primary = a:elems[0]
   if len(a:elems[1]) > 0
     let suffix = a:elems[1][0]
@@ -262,11 +263,11 @@ function! s:Suffix(elems) abort "{{{
   else
     let result = primary
   endif
-  "echom 'Suffix: ' . result
+  echom 'Suffix: ' . result
   return result
 endfunction "}}}
 function! s:Primary(elems) abort "{{{
-  "echom 'Primary: '.string(a:elems)
+  echom 'Primary: '.string(a:elems)
   let len = len(a:elems)
   if type(a:elems) == type('')
     let result = a:elems
@@ -275,38 +276,38 @@ function! s:Primary(elems) abort "{{{
   else
     let result = a:elems[1]
   endif
-  "echom 'Primary: ' . result
+  echom 'Primary: ' . result
   return result
 endfunction "}}}
 function! s:Callback(elems) abort "{{{
   let callback = a:elems[1]
-  "echom 'Callback: ' . callback
+  echom 'Callback: ' . callback
   return callback
 endfunction "}}}
 function! s:Option(elems) abort "{{{
-  "echom string(a:elems)
+  echom string(a:elems)
   if s:setting_options == 0
     echoerr 'All options must be declared before definitions.'
   endif
   exec 'let s:parser_options.'.a:elems[1][0].' = '.a:elems[3]
-  "echom 'Option: let s:parser_options.'.a:elems[1][0].' = '.a:elems[3]
+  echom 'Option: let s:parser_options.'.a:elems[1][0].' = '.a:elems[3]
   return ''
 endfunction "}}}
 function! s:Label(elems) abort "{{{
-  "echom string(a:elems)
+  echom string(a:elems)
   let result = "'".a:elems[1]."'"
-  "echom 'Label: ' . result
+  echom 'Label: ' . result
   return result
 endfunction "}}}
 function! s:Identifier(elems) abort "{{{
-  "echom string(a:elems)
+  echom string(a:elems)
   let id = a:elems
-  "echom 'Identifier: ' . id
+  echom 'Identifier: ' . id
   return id
 endfunction "}}}
 function! s:Option_value(elems) abort "{{{
-  "echom string(a:elems)
-  "echom 'Option_value: '.string(a:elems)
+  echom string(a:elems)
+  echom 'Option_value: '.string(a:elems)
   return a:elems
 endfunction "}}}
 function! s:Regex(elems) abort "{{{
