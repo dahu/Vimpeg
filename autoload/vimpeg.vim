@@ -1,11 +1,11 @@
 " Vim library file
 " Description:	Vimpeg - A PEG parser for Vim.
-" Maintainer:	Barry Arthur
-" Version:	0.1
-" Last Change:	2011 10 22
+" Maintainers:	Barry Arthur & Israel Chauca
+" Version:	0.2
+" Last Change:	2011 10 24
 " License:	Vim License (see :help license)
 " Location:	autoload/vimpeg.vim
-" Status: functional, if not beautiful
+" Status:	functional, if not beautiful
 
 "TODO:
 " * Currently returns an 'elements' list of all matches - this might be useful
@@ -17,6 +17,16 @@
 "   there is an extra element in the 'value' list.
 " * There are a bunch of TODO statements littering the code - they need doing
 "   too. :)
+
+" HISTORY:
+" 0.2 - PEG DSL Release
+"   Uses a PEG DSL for describing parsers instead of the manual programmatic
+"   API approach.
+"   Cleaned up to be usr_41 compliant.
+"
+" 0.1 - Initial Release
+"   Functional PEG parser generator using programmatic API.
+"   Bundled with various examples.
 
 if exists("g:loaded_vimpeg_lib")
 "      \ || v:version < 700 || &compatible

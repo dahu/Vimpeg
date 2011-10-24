@@ -1,8 +1,8 @@
 " Vim global plugin file
 " Description:	Vimpeg - A PEG parser for Vim.
-" Maintainer:	Barry Arthur
-" Version:	0.1
-" Last Change:	2011 10 22
+" Maintainer:	Barry Arthur & Israel Chauca
+" Version:	0.2
+" Last Change:	2011 10 24
 " License:	Vim License (see :help license)
 " Location:	plugin/vimpeg.vim
 
@@ -12,7 +12,7 @@ if exists("g:loaded_vimpeg")
 endif
 let g:loaded_vimpeg = 1
 
-let g:vimpeg_version = '0.1'
+let g:vimpeg_version = '0.2'
 
 " Allow use of line continuation.
 let s:save_cpo = &cpo

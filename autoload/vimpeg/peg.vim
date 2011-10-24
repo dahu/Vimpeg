@@ -109,9 +109,10 @@ endfun
 " # }}}
 
 " Parser building {{{
-call s:p.or(['option', 'definition'],
+call s:p.or(['comment', 'option', 'definition'],
       \{'id': 'line'})
-call s:p.and([s:p.maybe_one(s:p.and(['label', 'mallet', 'expression', s:p.maybe_one('callback')])), s:p.maybe_one('comment')],
+"call s:p.and([s:p.maybe_one(s:p.and(['label', 'mallet', 'expression', s:p.maybe_one('callback')])), s:p.maybe_one('comment')],
+call s:p.and(['label', 'mallet', 'expression', s:p.maybe_one('callback'), s:p.maybe_one('comment')],
       \{'id': 'definition', 'on_match': s:SID().'Definition'})
 call s:p.and(['sequence', s:p.maybe_many(s:p.and(['or', 'sequence']))],
       \{'id': 'expression', 'on_match': s:SID().'Expression'})
@@ -156,7 +157,7 @@ call s:p.e('''''',
 call s:p.e("'",
       \{'id': 'squote'})
 call s:p.e('#.*$',
-      \{'id': 'comment'})
+      \{'id': 'comment', 'on_match': s:SID().'Comment'})
 call s:p.e('->',
       \{'id': 'right_arrow'})
 call s:p.e('::=',
@@ -199,25 +200,30 @@ function! s:Line(elems) abort "{{{
   return result
 endfunction "}}}
 function! s:Definition(elems) abort "{{{
-  "echom string(a:elems)
+  "echom 'Definition: ' . string(a:elems)
   let s:setting_options = 0
-  if len(a:elems[0]) > 0
+  "if len(a:elems[0]) > 0
+  "if len(a:elems) > 0
     " Definition
-    let label = a:elems[0][0][0]
+    "let label = a:elems[0][0][0]
+    let label = a:elems[0]
     if !exists('s:root_element')
       exec 'let s:root_element = '.label
     endif
-    let mallet = a:elems[0][0][1]
-    let expression = a:elems[0][0][2]
+    "let mallet = a:elems[0][0][1]
+    let mallet = a:elems[1]
+    "let expression = a:elems[0][0][2]
+    let expression = a:elems[2]
     "echom expression
     let expression = expression =~ '^''' ? 's:p.and(['.expression.'],' : expression[:-2]
-    let callback = len(a:elems[0][0][3]) > 0 ? a:elems[0][0][3][0] : ''
+    "let callback = len(a:elems[0][0][3]) > 0 ? a:elems[0][0][3][0] : ''
+    let callback = len(a:elems[3]) > 0 ? a:elems[3][0] : ''
     let result = 'call '.expression.",\n      \\{'id': ".label.
           \(callback != '' ? ", 'on_match': ".string(callback) : '') . "})"
-  else
-    " Only a comment
-    let result = ''
-  endif
+  "else
+    "" Only a comment
+    "let result = ''
+  "endif
   "echom 'Definition: ' . result
   return result
 endfunction "}}}
@@ -377,6 +383,11 @@ function! s:Boolean(elems) abort "{{{
   "echom 'Boolean: ' . string(a:elems)
   return a:elems
 endfunction "}}}
+function! s:Comment(elems) abort "{{{
+  "echo 'Comment: -->' . string(a:elems) . '<--'
+  "return '"'.a:elems
+  return ''
+endfunction "}}}
 function! s:True(elems) abort "{{{
   "echom string(a:elems)
   "echom 'True: ' . string(a:elems)
@@ -441,7 +452,7 @@ function! vimpeg#peg#parse(lines) abort
   " Get rid of comment marks, if any.
   let result = map(copy(a:lines), 'substitute(v:val, ''^"\s*'', "", "")')
   " Parse the lines
-  call map(result, 'g:vimpeg#peg#parser.match(v:val).value')
+  call map(filter(result, 'v:val != ""'), 'g:vimpeg#peg#parser.match(v:val).value')
   " Split at newlines
   let result = eval(substitute(string(result), '\n', "', '", 'g'))
   " Remove empty items
@@ -449,6 +460,10 @@ function! vimpeg#peg#parse(lines) abort
   return result
 endfunction
 
+" writefile(bang, [target, source]) range abort
+"   target : destination file for parser output
+"   source : parser definition in PEG DSL format
+"
 function! vimpeg#peg#writefile(bang, args) range abort
   let parser_path = len(a:args) > 0 ? a:args[0] : expand('%:p:r:h').'.vim'
 
