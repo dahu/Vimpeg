@@ -1,0 +1,17 @@
+% Simple Calculator
+% Vimpeg Example Grammar
+% Barry Arthur, 2011 10 24
+
+.skip_white = true
+.parser_name = 'calc'
+.root_element = 'calc'
+
+<calc>   ::=  <add> | <sub> | <prod>
+<add>    ::=  <prod> '+' <calc>       ->  calculator#add
+<sub>    ::=  <prod> '-' <calc>       ->  calculator#sub
+<prod>   ::=  <mul> | <div> | <atom>
+<mul>    ::=  <atom> '\*' <prod>      ->  calculator#mul
+<div>    ::=  <atom> '\/' <prod>      ->  calculator#div
+<ncalc>  ::=  '(' <calc> ')'          ->  calculator#nCalc
+<atom>   ::=  <num> | <ncalc>
+<num>    ::=  '\d\+'                  ->  calculator#num

@@ -52,7 +52,7 @@ endfun
 " CLOSE <- ’)’ Spacing
 " DOT <- ’.’ Spacing
 " Spacing <- (Space / Comment)*
-" Comment <- ’#’ (!EndOfLine .)* EndOfLine
+" Comment <- ’%’ (!EndOfLine .)* EndOfLine
 " Space <- ’ ’ / ’\t’ / EndOfLine
 " EndOfLine <- ’\r\n’ / ’\n’ / ’\r’
 " EndOfFile <- !.
@@ -63,7 +63,7 @@ endfun
 " .skip_all = false
 " .string_option = 'abc'
 " .other_string_option = "def"
-" .numeric_option = 3 # a comment
+" .numeric_option = 3 % a comment
 " .float_option = 2.5
 " <line>             ::= <option> | <definition>
 " <definition>       ::= ( <label> <mallet> <expression> <callback>? )? <comment>? -> Definition
@@ -88,7 +88,7 @@ endfun
 " <dquote>           ::= '"'
 " <double_squote>    ::= "''"
 " <squote>           ::= "'"
-" <comment>          ::= '#.*$'
+" <comment>          ::= '%.*$'
 " <right_arrow>      ::= '->'
 " <mallet>           ::= '::=' # End of line
 " <boolean>          ::= <true> | <false>
@@ -124,7 +124,7 @@ call s:p.and(['primary', s:p.maybe_one(s:p.or(['question', 'star', 'plus']))],
       \{'id': 'suffix', 'on_match': s:SID().'Suffix'})
 call s:p.or([s:p.and(['label', s:p.not_has('mallet')]), s:p.and(['open', 'expression', 'close']), 'regex'],
       \{'id': 'primary', 'on_match': s:SID().'Primary'})
-call s:p.and(['right_arrow', 'identifier'],
+call s:p.and(['right_arrow', 'callback_identifier'],
       \{'id': 'callback', 'on_match': s:SID().'Callback'})
 call s:p.and(['dot', 'option_name', 'equal', 'option_value', s:p.maybe_one('comment')],
       \{'id': 'option', 'on_match': s:SID().'Option'})
@@ -134,6 +134,8 @@ call s:p.or(['squoted_string', 'dquoted_string', 'boolean', 'number'],
       \{'id': 'option_value', 'on_match': s:SID().'Option_value'})
 call s:p.and(['lt', 'identifier', 'gt'],
       \{'id': 'label', 'on_match': s:SID().'Label'})
+call s:p.e('\h[[:alnum:]#]*',
+      \{'id': 'callback_identifier', 'on_match': s:SID().'Identifier'})
 call s:p.e('\h\w*',
       \{'id': 'identifier', 'on_match': s:SID().'Identifier'})
 call s:p.or(['dquoted_string', 'squoted_string'],
@@ -156,7 +158,7 @@ call s:p.e('''''',
       \{'id': 'double_squote'})
 call s:p.e("'",
       \{'id': 'squote'})
-call s:p.e('#.*$',
+call s:p.e('%.*$',
       \{'id': 'comment', 'on_match': s:SID().'Comment'})
 call s:p.e('->',
       \{'id': 'right_arrow'})
@@ -472,6 +474,7 @@ function! vimpeg#peg#writefile(bang, args) range abort
     echohl ErrorMsg
     echom 'The file "'.parser_path.'" already exists, add ! to overwrite it.'
     echohl None
+    exec 'so '.parser_path
     return 0
   endif
 
