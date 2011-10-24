@@ -65,15 +65,15 @@ endfun
 " .other_string_option = "def"
 " .numeric_option = 3 % a comment
 " .float_option = 2.5
-" <line>             ::= <option> | <definition>
-" <definition>       ::= ( <label> <mallet> <expression> <callback>? )? <comment>? -> Definition
+" <line>             ::= ( <option> | <definition> )? <comment>? -> Line
+" <definition>       ::= <label> <mallet> <expression> <callback>? -> Definition
 " <expression>       ::= <sequence> ( <or> <sequence> )* -> Expression
 " <sequence>         ::= <prefix>* -> Sequence
 " <prefix>           ::= <not>? <suffix> -> Prefix
 " <suffix>           ::= <primary> ( <question> | <star> | <plus> )? -> Suffix
 " <primary>          ::= <label> !<mallet> | <open> <expression> <close> | <regex> -> Primary
-" <callback>         ::= <right_arrow> <identifier> -> Callback
-" <option>           ::= <dot> <option_name> <equal> <option_value> <comment>? -> Option
+" <callback>         ::= <right_arrow> '\h\%([a-zA-Z0-9_:.#]*\w\+\)\?' -> Callback
+" <option>           ::= <dot> <option_name> <equal> <option_value> -> Option
 " <option_name>      ::= <identifier>
 " <option_value>     ::= <squoted_string> | <squoted_string> | <number> | <boolean>
 " <label>            ::= <lt> <identifier> <gt> -> Label
@@ -109,10 +109,9 @@ endfun
 " # }}}
 
 " Parser building {{{
-call s:p.or(['comment', 'option', 'definition'],
-      \{'id': 'line'})
-"call s:p.and([s:p.maybe_one(s:p.and(['label', 'mallet', 'expression', s:p.maybe_one('callback')])), s:p.maybe_one('comment')],
-call s:p.and(['label', 'mallet', 'expression', s:p.maybe_one('callback'), s:p.maybe_one('comment')],
+call s:p.and([s:p.maybe_one(s:p.or(['option', 'definition', 'empty_line'])), s:p.maybe_one('comment')],
+      \{'id': 'line', 'on_match': s:SID().'Line'})
+call s:p.and(['label', 'mallet', 'expression', s:p.maybe_one('callback')],
       \{'id': 'definition', 'on_match': s:SID().'Definition'})
 call s:p.and(['sequence', s:p.maybe_many(s:p.and(['or', 'sequence']))],
       \{'id': 'expression', 'on_match': s:SID().'Expression'})
@@ -160,6 +159,8 @@ call s:p.e("'",
       \{'id': 'squote'})
 call s:p.e('%.*$',
       \{'id': 'comment', 'on_match': s:SID().'Comment'})
+call s:p.e('^$',
+      \{'id': 'empty_line'})
 call s:p.e('->',
       \{'id': 'right_arrow'})
 call s:p.e('::=',
@@ -197,35 +198,29 @@ call s:p.e('<',
 " Callback functions {{{
 function! s:Line(elems) abort "{{{
   "echom string(a:elems)
-  let result = a:elems
+  if len(a:elems[0]) > 0
+    let result = a:elems[0][0]
+  else
+    let result = ''
+  endif
   "echom 'Line: ' . result
   return result
 endfunction "}}}
 function! s:Definition(elems) abort "{{{
   "echom 'Definition: ' . string(a:elems)
   let s:setting_options = 0
-  "if len(a:elems[0]) > 0
-  "if len(a:elems) > 0
-    " Definition
-    "let label = a:elems[0][0][0]
-    let label = a:elems[0]
-    if !exists('s:root_element')
-      exec 'let s:root_element = '.label
-    endif
-    "let mallet = a:elems[0][0][1]
-    let mallet = a:elems[1]
-    "let expression = a:elems[0][0][2]
-    let expression = a:elems[2]
-    "echom expression
-    let expression = expression =~ '^''' ? 's:p.and(['.expression.'],' : expression[:-2]
-    "let callback = len(a:elems[0][0][3]) > 0 ? a:elems[0][0][3][0] : ''
-    let callback = len(a:elems[3]) > 0 ? a:elems[3][0] : ''
-    let result = 'call '.expression.",\n      \\{'id': ".label.
-          \(callback != '' ? ", 'on_match': ".string(callback) : '') . "})"
-  "else
-    "" Only a comment
-    "let result = ''
-  "endif
+  " Definition
+  let label = a:elems[0]
+  if !exists('s:root_element')
+    exec 'let s:root_element = '.label
+  endif
+  let mallet = a:elems[1]
+  let expression = a:elems[2]
+  "echom expression
+  let expression = expression =~ '^''' ? 's:p.and(['.expression.']' : expression[:-2]
+  let callback = len(a:elems[3]) > 0 ? a:elems[3][0] : ''
+  let result = 'call '.expression.",\n      \\{'id': ".label.
+        \(callback != '' ? ", 'on_match': ".string(callback) : '') . "})"
   "echom 'Definition: ' . result
   return result
 endfunction "}}}
@@ -488,7 +483,7 @@ function! vimpeg#peg#writefile(bang, args) range abort
     let lines = readfile(source_path)
   endif
 
-  " Add comments marks if needed
+  " Add comment marks if needed
   let peg_rules = map(copy(lines), 'v:val =~ ''^\s*"\s*'' ? v:val : ''" ''.v:val')
   let peg_commands = vimpeg#peg#parse(lines)
   let parser_name = get(s:parser_options, 'parser_name', fnamemodify(source_path, ':p:t:r'))
@@ -512,6 +507,9 @@ function! vimpeg#peg#writefile(bang, args) range abort
   echom 'The parser was built into "'.parser_path.'".'
   echohl None
   exec 'so '.parser_path
+  echohl WarningMsg
+  echom 'The parser was loaded.'
+  echohl None
   return result
 endfunction
 " }}}
