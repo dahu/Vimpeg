@@ -58,7 +58,7 @@ endfun
 " EndOfFile <- !.
 " }}}
 
-" # VimPEG grammar {{{
+" % VimPEG grammar {{{
 " .skip_white = true
 " .skip_all = false
 " .string_option = 'abc'
@@ -90,7 +90,7 @@ endfun
 " <squote>           ::= "'"
 " <comment>          ::= '%.*$'
 " <right_arrow>      ::= '->'
-" <mallet>           ::= '::=' # End of line
+" <mallet>           ::= '::=' % End of line
 " <boolean>          ::= <true> | <false>
 " <true>             ::= 'true\|on' -> True
 " <false>            ::= 'false\|off' -> False
@@ -102,11 +102,11 @@ endfun
 " <plus>             ::= '+'
 " <close>            ::= ')'
 " <open>             ::= '('
-" # whole line
+" % whole line
 " <dot>              ::= '\.'
 " <gt>               ::= '>'
 " <lt>               ::= '<'
-" # }}}
+" % }}}
 
 " Parser building {{{
 call s:p.and([s:p.maybe_one(s:p.or(['option', 'definition', 'empty_line'])), s:p.maybe_one('comment')],
@@ -447,7 +447,7 @@ let vimpeg#peg#parser = s:p.GetSym('line')
 function! vimpeg#peg#parse(lines) abort
   let s:setting_options = 1
   " Get rid of comment marks, if any.
-  let result = map(copy(a:lines), 'substitute(v:val, ''^"\s*'', "", "")')
+  "let result = map(copy(a:lines), 'substitute(v:val, ''^"\s*'', "", "")')
   " Parse the lines
   call map(filter(result, 'v:val != ""'), 'g:vimpeg#peg#parser.match(v:val).value')
   " Split at newlines
