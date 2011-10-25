@@ -69,7 +69,7 @@ endfun
 " <definition>       ::= <label> <mallet> <expression> <callback>? -> Definition
 " <expression>       ::= <sequence> ( <or> <sequence> )* -> Expression
 " <sequence>         ::= <prefix>* -> Sequence
-" <prefix>           ::= <not>? <suffix> -> Prefix
+" <prefix>           ::= ( and | <not> )? <suffix> -> Prefix
 " <suffix>           ::= <primary> ( <question> | <star> | <plus> )? -> Suffix
 " <primary>          ::= <label> !<mallet> | <open> <expression> <close> | <regex> -> Primary
 " <callback>         ::= <right_arrow> '\%([a-zA-Z0-9_:.#]*\w\+\)\?' -> Callback
@@ -96,6 +96,7 @@ endfun
 " <false>            ::= 'false\|off' -> False
 " <equal>            ::= '='
 " <or>               ::= '|'
+" <and>              ::= '&'
 " <not>              ::= '!'
 " <question>         ::= '?'
 " <star>             ::= '\*'
@@ -117,7 +118,7 @@ call s:p.and(['sequence', s:p.maybe_many(s:p.and(['or', 'sequence']))],
       \{'id': 'expression', 'on_match': s:SID().'Expression'})
 call s:p.maybe_many('prefix',
       \{'id': 'sequence', 'on_match': s:SID().'Sequence'})
-call s:p.and([s:p.maybe_one('not'), 'suffix'],
+call s:p.and([s:p.maybe_one(s:p.or(['and', 'not'])), 'suffix'],
       \{'id': 'prefix', 'on_match': s:SID().'Prefix'})
 call s:p.and(['primary', s:p.maybe_one(s:p.or(['question', 'star', 'plus']))],
       \{'id': 'suffix', 'on_match': s:SID().'Suffix'})
@@ -177,6 +178,8 @@ call s:p.e('|',
       \{'id': 'or'})
 call s:p.e('!',
       \{'id': 'not'})
+call s:p.e('&',
+      \{'id': 'and'})
 call s:p.e('?',
       \{'id': 'question'})
 call s:p.e('\*',
@@ -254,7 +257,7 @@ function! s:Prefix(elems) abort "{{{
   let suffix = a:elems[1]
   if len(a:elems[0]) > 0
     let prefix = a:elems[0][0]
-    let result = 's:p.not_has('.suffix.')'
+    let result = 's:p.'.(prefix == '!' ? 'not_' : '').'has('.suffix.')'
   else
     let result = suffix
   endif
