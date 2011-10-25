@@ -23,7 +23,3 @@ func! calculator#nCalc(elems)
   "echo "nCalc: " . string(a:elems)
   return a:elems[1]
 endfunc
-
-func calculator#init()
-  silent call vimpeg#peg#writefile(0, [s:ppath.'calc.vim', s:ppath.'calc.vimpeg'])
-endfunc

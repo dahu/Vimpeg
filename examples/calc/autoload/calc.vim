@@ -3,12 +3,12 @@
 " from "/mnt/home_folders/arthurb/projects/vim/plugins/vimpeg/examples/calc/autoload/calc.vimpeg"
 " with the following grammar:
 
-" % Simple Calculator
-" % Vimpeg Example Grammar
-" % Barry Arthur, 2011 10 24
+" ; Simple Calculator
+" ; Vimpeg Example Grammar
+" ; Barry Arthur, 2011 10 24
 " 
 " .skip_white = true
-" .parser_name = 'calc'
+" .parser_name = 'calc#parser'
 " .root_element = 'calc'
 " 
 " <calc>   ::=  <add> | <sub> | <prod>
@@ -41,4 +41,4 @@ call s:p.or(['num', 'ncalc'],
 call s:p.e('\d\+',
       \{'id': 'num', 'on_match': 'calculator#num'})
 
-let g:calc = s:p.GetSym('calc')
+let g:calc#parser = s:p.GetSym('calc')
