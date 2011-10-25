@@ -214,13 +214,14 @@ function! s:Definition(elems) abort "{{{
   if !exists('s:root_element')
     exec 'let s:root_element = '.label
   endif
+  let s:callback_prefix = get(s:parser_options, 'callback_prefix', '')
   let mallet = a:elems[1]
   let expression = a:elems[2]
   "echom expression
   let expression = expression =~ '^''' ? 's:p.and(['.expression.']' : expression[:-2]
   let callback = len(a:elems[3]) > 0 ? a:elems[3][0] : ''
   let result = 'call '.expression.",\n      \\{'id': ".label.
-        \(callback != '' ? ", 'on_match': ".string(callback) : '') . "})"
+        \(callback != '' ? ", 'on_match': '".s:callback_prefix.callback."'" : '')."})"
   "echom 'Definition: ' . result
   return result
 endfunction "}}}

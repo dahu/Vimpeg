@@ -1,6 +1,6 @@
-" Parser compiled on Mon 24 Oct 2011 07:32:08 PM CST,
+" Parser compiled on Tue Oct 25 01:21:22 2011,
 " with VimPEG v0.2 and VimPEG Compiler v0.1
-" from "/mnt/home_folders/arthurb/projects/vim/plugins/vimpeg/examples/calc/autoload/calc.vimpeg"
+" from "calc.vimpeg"
 " with the following grammar:
 
 " ; Simple Calculator
@@ -8,20 +8,21 @@
 " ; Barry Arthur, 2011 10 24
 " 
 " .skip_white = true
+" .callback_prefix = 'calculator#'
 " .parser_name = 'calc#parser'
 " .root_element = 'calc'
 " 
 " <calc>   ::=  <add> | <sub> | <prod>
-" <add>    ::=  <prod> '+' <calc>       ->  calculator#add
-" <sub>    ::=  <prod> '-' <calc>       ->  calculator#sub
+" <add>    ::=  <prod> '+' <calc>       ->  add
+" <sub>    ::=  <prod> '-' <calc>       ->  sub
 " <prod>   ::=  <mul> | <div> | <atom>
-" <mul>    ::=  <atom> '\*' <prod>      ->  calculator#mul
-" <div>    ::=  <atom> '\/' <prod>      ->  calculator#div
-" <ncalc>  ::=  '(' <calc> ')'          ->  calculator#nCalc
+" <mul>    ::=  <atom> '\*' <prod>      ->  mul
+" <div>    ::=  <atom> '\/' <prod>      ->  div
+" <ncalc>  ::=  '(' <calc> ')'          ->  nCalc
 " <atom>   ::=  <num> | <ncalc>
-" <num>    ::=  '\d\+'                  ->  calculator#num
+" <num>    ::=  '\d\+'                  ->  num
 
-let s:p = vimpeg#parser({'root_element': 'calc', 'skip_white': 1, 'parser_name': 'calc'})
+let s:p = vimpeg#parser({'root_element': 'calc', 'skip_white': 1, 'callback_prefix': 'calculator#', 'parser_name': 'calc#parser'})
 call s:p.or(['add', 'sub', 'prod'],
       \{'id': 'calc'})
 call s:p.and(['prod', s:p.e('+'), 'calc'],
