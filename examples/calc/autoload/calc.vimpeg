@@ -7,7 +7,7 @@
 .parser_name = 'calc#parser'
 .root_element = 'calc'
 
-<calc>   ::=  <add> | <sub> | <prod>
+<calc>   ::=  <add> | <sub> | <prod>  Some Crap Here
 <add>    ::=  <prod> '+' <calc>       ->  #callback.add
 <sub>    ::=  <prod> '-' <calc>       ->  #callback.sub
 <prod>   ::=  <mul> | <div> | <atom>

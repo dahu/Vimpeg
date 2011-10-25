@@ -1,4 +1,3 @@
-let s:ppath = expand('<sfile>:p:h').'/'
 let calculator#callback = {}
 func! calculator#callback.add(elems)
   "echo "Add: " . string(a:elems)
