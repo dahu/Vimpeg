@@ -58,12 +58,12 @@ endfun
 " EndOfFile <- !.
 " }}}
 
-" % VimPEG grammar {{{
+" ; VimPEG grammar {{{
 " .skip_white = true
 " .skip_all = false
 " .string_option = 'abc'
 " .other_string_option = "def"
-" .numeric_option = 3 % a comment
+" .numeric_option = 3 ; a comment
 " .float_option = 2.5
 " <line>             ::= ( <option> | <definition> )? <comment>? -> Line
 " <definition>       ::= <label> <mallet> <expression> <callback>? -> Definition
@@ -88,9 +88,9 @@ endfun
 " <dquote>           ::= '"'
 " <double_squote>    ::= "''"
 " <squote>           ::= "'"
-" <comment>          ::= '%.*$'
+" <comment>          ::= ';.*$'
 " <right_arrow>      ::= '->'
-" <mallet>           ::= '::=' % End of line
+" <mallet>           ::= '::=' ; End of line
 " <boolean>          ::= <true> | <false>
 " <true>             ::= 'true\|on' -> True
 " <false>            ::= 'false\|off' -> False
@@ -102,11 +102,11 @@ endfun
 " <plus>             ::= '+'
 " <close>            ::= ')'
 " <open>             ::= '('
-" % whole line
+" ; whole line
 " <dot>              ::= '\.'
 " <gt>               ::= '>'
 " <lt>               ::= '<'
-" % }}}
+" ; }}}
 
 " Parser building {{{
 call s:p.and([s:p.maybe_one(s:p.or(['option', 'definition', 'empty_line'])), s:p.maybe_one('comment')],
@@ -157,7 +157,7 @@ call s:p.e('''''',
       \{'id': 'double_squote'})
 call s:p.e("'",
       \{'id': 'squote'})
-call s:p.e('%.*$',
+call s:p.e(';.*$',
       \{'id': 'comment', 'on_match': s:SID().'Comment'})
 call s:p.e('^$',
       \{'id': 'empty_line'})
