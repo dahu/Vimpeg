@@ -72,7 +72,7 @@ endfun
 " <prefix>           ::= <not>? <suffix> -> Prefix
 " <suffix>           ::= <primary> ( <question> | <star> | <plus> )? -> Suffix
 " <primary>          ::= <label> !<mallet> | <open> <expression> <close> | <regex> -> Primary
-" <callback>         ::= <right_arrow> '\h\%([a-zA-Z0-9_:.#]*\w\+\)\?' -> Callback
+" <callback>         ::= <right_arrow> '\%([a-zA-Z0-9_:.#]*\w\+\)\?' -> Callback
 " <option>           ::= <dot> <option_name> <equal> <option_value> -> Option
 " <option_name>      ::= <identifier>
 " <option_value>     ::= <squoted_string> | <squoted_string> | <number> | <boolean>
@@ -133,7 +133,7 @@ call s:p.or(['squoted_string', 'dquoted_string', 'boolean', 'number'],
       \{'id': 'option_value', 'on_match': s:SID().'Option_value'})
 call s:p.and(['lt', 'identifier', 'gt'],
       \{'id': 'label', 'on_match': s:SID().'Label'})
-call s:p.e('\h[[:alnum:]#]*',
+call s:p.e('[[:alnum:]#._:]\+',
       \{'id': 'callback_identifier', 'on_match': s:SID().'Identifier'})
 call s:p.e('\h\w*',
       \{'id': 'identifier', 'on_match': s:SID().'Identifier'})
@@ -214,14 +214,17 @@ function! s:Definition(elems) abort "{{{
   if !exists('s:root_element')
     exec 'let s:root_element = '.label
   endif
-  let s:callback_prefix = get(s:parser_options, 'callback_prefix', '')
   let mallet = a:elems[1]
   let expression = a:elems[2]
   "echom expression
   let expression = expression =~ '^''' ? 's:p.and(['.expression.']' : expression[:-2]
   let callback = len(a:elems[3]) > 0 ? a:elems[3][0] : ''
+  let callback = (callback =~ '^#' ?
+        \         get(s:parser_options, 'namespace', '') :
+        \         '') .
+        \ callback
   let result = 'call '.expression.",\n      \\{'id': ".label.
-        \(callback != '' ? ", 'on_match': '".s:callback_prefix.callback."'" : '')."})"
+        \(callback != '' ? ", 'on_match': '".callback."'" : '')."})"
   "echom 'Definition: ' . result
   return result
 endfunction "}}}

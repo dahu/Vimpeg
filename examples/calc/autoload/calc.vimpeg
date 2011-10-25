@@ -3,16 +3,16 @@
 ; Barry Arthur, 2011 10 24
 
 .skip_white = true
-.callback_prefix = 'calculator#'
+.namespace = 'calculator'
 .parser_name = 'calc#parser'
 .root_element = 'calc'
 
 <calc>   ::=  <add> | <sub> | <prod>
-<add>    ::=  <prod> '+' <calc>       ->  add
-<sub>    ::=  <prod> '-' <calc>       ->  sub
+<add>    ::=  <prod> '+' <calc>       ->  #callback.add
+<sub>    ::=  <prod> '-' <calc>       ->  #callback.sub
 <prod>   ::=  <mul> | <div> | <atom>
-<mul>    ::=  <atom> '\*' <prod>      ->  mul
-<div>    ::=  <atom> '\/' <prod>      ->  div
-<ncalc>  ::=  '(' <calc> ')'          ->  nCalc
+<mul>    ::=  <atom> '\*' <prod>      ->  #callback.mul
+<div>    ::=  <atom> '\/' <prod>      ->  #callback.div
+<ncalc>  ::=  '(' <calc> ')'          ->  #callback.nCalc
 <atom>   ::=  <num> | <ncalc>
-<num>    ::=  '\d\+'                  ->  num
+<num>    ::=  '\d\+'                  ->  #callback.num

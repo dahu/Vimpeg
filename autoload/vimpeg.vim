@@ -53,6 +53,17 @@ function! vimpeg#parser(options) abort
     let peg.optSkipWhite = a:options['skip_white']
   endif
 
+  func peg.callback(func, args) dict abort
+    if a:func =~ '\.'
+      let func = (a:func =~ '^\a:' ? '' : 'g:').a:func
+      let dict = substitute(func, '^\(.*\)\..\+', '\1', '')
+      let cmd = 'call('.func.', [a:args], '.dict.')'
+      exec 'return '.cmd
+    else
+      return call(a:func, [a:args])
+    endif
+  endfunction
+
   func peg.GetSym(id) dict abort
     let id = a:id
     if type(id) == type("")
@@ -128,7 +139,7 @@ function! vimpeg#parser(options) abort
     if is_matched
       let self.value = strpart(a:input.str, ends[0], ends[1] - ends[0])
       if has_key(self, 'on_match')
-        let self.value = call(self.on_match, [self.value])
+        let self.value = self.parent.callback(self.on_match, self.value)
       endif
     endif
     return {'id' : self.id, 'pattern' : self.pat, 'ends' : ends, 'pos': ends[1], 'value' : self.value, 'is_matched': is_matched, 'errmsg': errmsg}
@@ -191,7 +202,7 @@ function! vimpeg#parser(options) abort
       let pos = elements[-1]['pos']
       let self.value = map(copy(elements), 'v:val["value"]')
       if has_key(self, 'on_match')
-        let self.value = call(self.on_match, [self.value])
+        let self.value = self.parent.callback(self.on_match, self.value)
       endif
     else
       let errmsg = "Failed to match Sequence at byte " . a:input.pos
@@ -229,7 +240,7 @@ function! vimpeg#parser(options) abort
       let pos = element['pos']
       let self.value = element["value"]
       if has_key(self, 'on_match')
-        let self.value = call(self.on_match, [self.value])
+        let self.value = self.parent.callback(self.on_match, self.value)
       endif
     else
       let errmsg = "Failed to match Ordered Choice at byte " . a:input.pos
@@ -277,7 +288,7 @@ function! vimpeg#parser(options) abort
         let pos = elements[-1]['pos']
         let self.value = map(copy(elements), 'v:val["value"]')
         if has_key(self, 'on_match')
-          let self.value = call(self.on_match, [self.value])
+          let self.value = self.parent.callback(self.on_match, self.value)
         endif
       endif
     endif
@@ -311,7 +322,7 @@ function! vimpeg#parser(options) abort
       " interesting parsers...
       let self.value = element["value"]
       if has_key(self, 'on_match')
-        let self.value = call(self.on_match, [self.value])
+        let self.value = self.parent.callback(self.on_match, self.value)
       endif
     endif
     return {'id': self.id, 'elements': [element], 'pos': pos, 'type': self.type, 'value': self.value, 'is_matched': is_matched}
