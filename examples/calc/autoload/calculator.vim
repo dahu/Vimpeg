@@ -1,25 +1,24 @@
-let calculator#callback = {}
-func! calculator#callback.add(elems)
+func! calculator#add(elems)
   "echo "Add: " . string(a:elems)
   return a:elems[0] + a:elems[2]
 endfunc
-func! calculator#callback.sub(elems)
+func! calculator#sub(elems)
   "echo "Sub: " . string(a:elems)
   return a:elems[0] - a:elems[2]
 endfunc
-func! calculator#callback.mul(elems)
+func! calculator#mul(elems)
   "echo "Mul: " . string(a:elems)
   return a:elems[0] * a:elems[2]
 endfunc
-func! calculator#callback.div(elems)
+func! calculator#div(elems)
   "echo "Div: " . string(a:elems)
   return a:elems[0] / a:elems[2]
 endfunc
-func! calculator#callback.num(elems)
+func! calculator#num(elems)
   "echo "Num: " . string(a:elems)
   return str2nr(a:elems)
 endfunc
-func! calculator#callback.nCalc(elems)
+func! calculator#nCalc(elems)
   "echo "nCalc: " . string(a:elems)
   return a:elems[1]
 endfunc
