@@ -64,7 +64,7 @@ endfun
 " .string_option = 'abc'
 " .other_string_option = "def"
 " .numeric_option = 3 ; a comment
-" .float_option = 2.5
+" .float_option = 2.5 This line should fail
 " <line>             ::= ( <option> | <definition> )? <comment>? -> Line
 " <definition>       ::= <label> <mallet> <expression> <callback>? -> Definition
 " <expression>       ::= <sequence> ( <or> <sequence> )* -> Expression
@@ -110,10 +110,9 @@ endfun
 " ; }}}
 
 " Parser building {{{
-"call s:p.and([s:p.maybe_one(s:p.or(['option', 'definition', 'empty_line'])), s:p.maybe_one('comment')],
 call s:p.or(['comment', 'option', 'definition'],
       \{'id': 'line', 'on_match': s:SID().'Line'})
-call s:p.and(['label', 'mallet', 'expression', s:p.maybe_one('callback'), 'eol'],
+call s:p.and(['label', 'mallet', 'expression', s:p.maybe_one('callback'), s:p.maybe_one('comment'), 'eol'],
       \{'id': 'definition', 'on_match': s:SID().'Definition'})
 call s:p.and(['sequence', s:p.maybe_many(s:p.and(['or', 'sequence']))],
       \{'id': 'expression', 'on_match': s:SID().'Expression'})
@@ -127,7 +126,7 @@ call s:p.or([s:p.and(['label', s:p.not_has('mallet')]), s:p.and(['open', 'expres
       \{'id': 'primary', 'on_match': s:SID().'Primary'})
 call s:p.and(['right_arrow', 'callback_identifier'],
       \{'id': 'callback', 'on_match': s:SID().'Callback'})
-call s:p.and(['dot', 'option_name', 'equal', 'option_value', s:p.maybe_one('comment')],
+call s:p.and(['dot', 'option_name', 'equal', 'option_value', s:p.maybe_one('comment'), 'eol'],
       \{'id': 'option', 'on_match': s:SID().'Option'})
 call s:p.and(['identifier'],
       \{'id': 'option_name'})
@@ -161,8 +160,6 @@ call s:p.e("'",
       \{'id': 'squote'})
 call s:p.e(';.*$',
       \{'id': 'comment', 'on_match': s:SID().'Comment'})
-"call s:p.e('^*$',
-      "\{'id': 'empty_line'})
 call s:p.e('\_$',
       \{'id': 'eol'})
 call s:p.e('->',
@@ -468,7 +465,7 @@ function! vimpeg#peg#parse(lines) abort
   let result = []
   for line in a:lines
     let lnum += 1
-    if line != ''
+    if line !~ '^\s*$'
       let res = g:vimpeg#peg#parser.match(line)
       if (type(res.value) == type([])) && res.value == []
         echohl ErrorMsg
@@ -491,7 +488,7 @@ endfunction
 
 " writefile(bang, [target, source]) range abort
 "   target : destination file for parser output
-"   source : parser definition in PEG DSL format
+"   source : parseridefinition in PEG DSL format
 "
 function! vimpeg#peg#writefile(bang, args) range abort
   let parser_path = len(a:args) > 0 ? a:args[0] : expand('%:p:r:h').'.vim'
