@@ -27,6 +27,7 @@ syn region  vimpegDefinition   start=/^\s*\ze</ end=/$/ contains=vimpegLabel,vim
 syn region  vimpegDefTag       matchgroup=vimpegDefLabel start=/</ end=/>/ contained
 syn region  vimpegDefLabel     matchgroup=Normal start=/^\s*\zs</ end=/>\ze\s/ containedin=vimpegDefinition contained
 syn match   vimpegDefLimit     /::=/ containedin=vimpegDefinition contained
+syn match   vimpegDefLimit     /|/ containedin=vimpegDefinition contained
 syn match   vimpegDefLimit     /->/ containedin=vimpegDefCallback contained
 syn match   vimpegDefCallback  /->\s*[[:alnum:]_:.#]*\ze\%(\s*;.*\)\?/ containedin=vimpegDefinition
 syn match   vimpegDefSpecial   /[!&]/ containedin=vimpegDefinition contained
