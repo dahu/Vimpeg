@@ -16,28 +16,28 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 syn region  vimpegOptRegion     start=/^\s*\./ end=/^\ze\s*</ contains=vimpegOption,vimpegComment
-syn match   vimpegOption        /^\s*\..*/ contains=vimpegOptLabel,vimpegAssign,vimpegOptValue,vimpegComment,vimpegOptBoolean contained
-syn match   vimpegOptName       /\h\w*/ containedin=vimpegOptLabel contained
-syn match   vimpegOptLabel      /^\s*\.\h\w*/ containedin=vimpegOption contains=vimpegOptName contained
+syn match   vimpegOption        /^\s*\..*/ contains=vimpegOptLabel,vimpegAssign,vimpegOptValue,vimpegComment,vimpegOptBoolean contained display
+syn match   vimpegOptName       /\h\w*/ containedin=vimpegOptLabel contained display
+syn match   vimpegOptLabel      /^\s*\.\h\w*/ containedin=vimpegOption contains=vimpegOptName contained display
 syn keyword vimpegOptBoolean    true false on off contained
-syn match   vimpegOptEqual      /=/ containedin=vimpegOption
+syn match   vimpegOptEqual      /=/ containedin=vimpegOption display
 
 syn region  vimpegDefRegion     start=/^\ze\s*</ skip=/./ end=/\%$/ contains=vimpegError,vimpegDefinition,vimpegComment
-syn region  vimpegDefinition    start=/^\s*\ze</ end=/$/ contains=vimpegLabel,vimpegDefMallet,vimpegDefTag,vimpegComment contained
-syn region  vimpegDefTag        matchgroup=vimpegDelimiter start=/</ end=/>/ contained
-syn region  vimpegDefLabel      matchgroup=vimpegDelimiter start=/^\s*\zs</ end=/>\ze\s/ containedin=vimpegDefinition contained
-syn match   vimpegDefLimit      /::=/ containedin=vimpegDefinition contained
-syn match   vimpegDefLimit      /|/ containedin=vimpegDefinition contained
-syn match   vimpegDefLimit      /->/ containedin=vimpegDefCallback contained
-syn match   vimpegDefCallback   /->\s*[[:alnum:]_:.#]*\ze\%(\s*;.*\)\?/ containedin=vimpegDefinition
-syn match   vimpegDefSpecial    /[!&]/ containedin=vimpegDefinition contained
-syn match   vimpegDefQuantifier /[?*+]/ containedin=vimpegDefinition contained
-syn match   vimpegDelimiter     /[()]/ contained containedin=vimpegDefinition
+syn region  vimpegDefinition    start=/^\s*\ze</ end=/$/ contains=vimpegLabel,vimpegDefMallet,vimpegDefTag,vimpegComment contained display oneline
+syn region  vimpegDefTag        matchgroup=vimpegDelimiter start=/</ end=/>/ contained display oneline
+syn region  vimpegDefLabel      matchgroup=vimpegDelimiter start=/^\s*\zs</ end=/>\ze\s/ containedin=vimpegDefinition contained display oneline
+syn match   vimpegDefLimit      /::=/ containedin=vimpegDefinition contained display
+syn match   vimpegDefLimit      /|/ containedin=vimpegDefinition contained display
+syn match   vimpegDefLimit      /->/ containedin=vimpegDefCallback contained display
+syn match   vimpegDefCallback   /->\s*[[:alnum:]_:.#]*\ze\%(\s*;.*\)\?/ containedin=vimpegDefinition display
+syn match   vimpegDefSpecial    /[!&]/ containedin=vimpegDefinition contained display
+syn match   vimpegDefQuantifier /[?*+]/ containedin=vimpegDefinition contained display
+syn match   vimpegDelimiter     /[()]/ contained containedin=vimpegDefinition display
 
-syn region  vimpegString        matchgroup=vimpegDelimiter start=/'/ skip=/''/ end=/'/ containedin=vimpegOption,vimpegDefinition
-syn region  vimpegString        matchgroup=vimpegDelimiter start=/"/ skip=/\\\\\|\\"/ end=/"/ containedin=vimpegOption,vimpegDefinition
-syn match   vimpegError         /^\s*\..*/ contained
-syn match   vimpegComment       /;.*$/ contains=vimpegTodo
+syn region  vimpegString        matchgroup=vimpegDelimiter start=/'/ skip=/''/ end=/'/ containedin=vimpegOption,vimpegDefinition display oneline
+syn region  vimpegString        matchgroup=vimpegDelimiter start=/"/ skip=/\\\\\|\\"/ end=/"/ containedin=vimpegOption,vimpegDefinition display oneline
+syn match   vimpegError         /^\s*\..*/ contained display
+syn match   vimpegComment       /;.*$/ contains=vimpegTodo display
 syn keyword vimpegTodo          TODO FIXME XXX NOTE contained
 
 hi link vimpegOptName		PreProc
