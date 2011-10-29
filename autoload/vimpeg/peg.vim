@@ -65,54 +65,51 @@ endfun
 " .other_string_option = "def"
 " .numeric_option = 3 ; a comment
 " .float_option = 2.5 This line should fail
-" <line>             ::= ( <option> | <definition> )? <comment>? -> Line
-" <definition>       ::= <label> <mallet> <expression> <callback>? -> Definition
-" <expression>       ::= <sequence> ( <or> <sequence> )* -> Expression
-" <sequence>         ::= <prefix>* -> Sequence
-" <prefix>           ::= ( and | <not> )? <suffix> -> Prefix
-" <suffix>           ::= <primary> ( <question> | <star> | <plus> )? -> Suffix
-" <primary>          ::= <label> !<mallet> | <open> <expression> <close> | <regex> -> Primary
-" <callback>         ::= <right_arrow> '\%([a-zA-Z0-9_:.#]*\w\+\)\?' -> Callback
-" <option>           ::= <dot> <option_name> <equal> <option_value> -> Option
-" <option_name>      ::= <identifier>
-" <option_value>     ::= <squoted_string> | <squoted_string> | <number> | <boolean>
-" <label>            ::= <lt> <identifier> <gt> -> Label
-" <identifier>       ::= '\h\w*' -> Identifier
-" <regex>            ::= <dquoted_string> | <squoted_string> -> Regex
-" <dquoted_string>   ::= <dquote> ( <double_backslash> | <escaped_dquote> | '[^"]' )* <dquote> -> Dquoted_string
-" <squoted_string>   ::= <squote> ( "[^']" | <double_squote> )* <squote> -> Squoted_string
-" <escaped_dquote>   ::= <backslash> <dquote>
-" <double_backslash> ::= <backslash> <backslash>
-" <backslash>        ::= '\'
-" <number>           ::= '\%(0\|[1-9]\d*\)\%(\.\d\+\)\?'
-" <dquote>           ::= '"'
-" <double_squote>    ::= "''"
-" <squote>           ::= "'"
-" <comment>          ::= ';.*$'
-" <right_arrow>      ::= '->'
-" <mallet>           ::= '::=' ; End of line
-" <boolean>          ::= <true> | <false>
-" <true>             ::= 'true\|on' -> True
-" <false>            ::= 'false\|off' -> False
-" <equal>            ::= '='
-" <or>               ::= '|'
-" <and>              ::= '&'
-" <not>              ::= '!'
-" <question>         ::= '?'
-" <star>             ::= '\*'
-" <plus>             ::= '+'
-" <close>            ::= ')'
-" <open>             ::= '('
+" line             ::= ( option | definition )? comment? -> Line
+" definition       ::= identifier mallet expression callback? -> Definition
+" expression       ::= sequence ( or sequence )* -> Expression
+" sequence         ::= prefix* -> Sequence
+" prefix           ::= ( and | not )? suffix -> Prefix
+" suffix           ::= primary ( question | star | plus )? -> Suffix
+" primary          ::= identifier !mallet | open expression close | regex -> Primary
+" callback         ::= right_arrow '\%([a-zA-Z0-9_:.#]*\w\+\)\?' -> Callback
+" option           ::= dot option_name equal option_value -> Option
+" option_name      ::= identifier
+" option_value     ::= squoted_string | squoted_string | number | boolean
+" identifier       ::= '\h\w*' -> Identifier
+" regex            ::= dquoted_string | squoted_string -> Regex
+" dquoted_string   ::= dquote ( double_backslash | escaped_dquote | '[^"]' )* dquote -> Dquoted_string
+" squoted_string   ::= squote ( "[^']" | double_squote )* squote -> Squoted_string
+" escaped_dquote   ::= backslash dquote
+" double_backslash ::= backslash backslash
+" backslash        ::= '\'
+" number           ::= '\%(0\|[1-9]\d*\)\%(\.\d\+\)\?'
+" dquote           ::= '"'
+" double_squote    ::= "''"
+" squote           ::= "'"
+" comment          ::= ';.*$'
+" right_arrow      ::= '->'
+" mallet           ::= '::=' ; End of line
+" boolean          ::= true | false
+" true             ::= 'true\|on' -> True
+" false            ::= 'false\|off' -> False
+" equal            ::= '='
+" or               ::= '|'
+" and              ::= '&'
+" not              ::= '!'
+" question         ::= '?'
+" star             ::= '\*'
+" plus             ::= '+'
+" close            ::= ')'
+" open             ::= '('
 " ; whole line
-" <dot>              ::= '\.'
-" <gt>               ::= '>'
-" <lt>               ::= '<'
+" dot              ::= '\.'
 " ; }}}
 
 " Parser building {{{
 call s:p.or(['comment', 'option', 'definition'],
       \{'id': 'line', 'on_match': s:SID().'Line'})
-call s:p.and(['label', 'mallet', 'expression', s:p.maybe_one('callback'), s:p.maybe_one('comment'), 'eol'],
+call s:p.and(['identifier', 'mallet', 'expression', s:p.maybe_one('callback'), s:p.maybe_one('comment'), 'eol'],
       \{'id': 'definition', 'on_match': s:SID().'Definition'})
 call s:p.and(['sequence', s:p.maybe_many(s:p.and(['or', 'sequence']))],
       \{'id': 'expression', 'on_match': s:SID().'Expression'})
@@ -122,7 +119,7 @@ call s:p.and([s:p.maybe_one(s:p.or(['and', 'not'])), 'suffix'],
       \{'id': 'prefix', 'on_match': s:SID().'Prefix'})
 call s:p.and(['primary', s:p.maybe_one(s:p.or(['question', 'star', 'plus']))],
       \{'id': 'suffix', 'on_match': s:SID().'Suffix'})
-call s:p.or([s:p.and(['label', s:p.not_has('mallet')]), s:p.and(['open', 'expression', 'close']), 'regex'],
+call s:p.or([s:p.and(['identifier', s:p.not_has('mallet')]), s:p.and(['open', 'expression', 'close']), 'regex'],
       \{'id': 'primary', 'on_match': s:SID().'Primary'})
 call s:p.and(['right_arrow', 'callback_identifier'],
       \{'id': 'callback', 'on_match': s:SID().'Callback'})
@@ -132,8 +129,6 @@ call s:p.and(['identifier'],
       \{'id': 'option_name'})
 call s:p.or(['squoted_string', 'dquoted_string', 'boolean', 'number'],
       \{'id': 'option_value', 'on_match': s:SID().'Option_value'})
-call s:p.and(['lt', 'identifier', 'gt'],
-      \{'id': 'label', 'on_match': s:SID().'Label'})
 call s:p.e('[[:alnum:]#._:]\+',
       \{'id': 'callback_identifier', 'on_match': s:SID().'Identifier'})
 call s:p.e('\h\w*',
@@ -192,10 +187,6 @@ call s:p.e('(',
       \{'id': 'open'})
 call s:p.e('\.',
       \{'id': 'dot'})
-call s:p.e('>',
-      \{'id': 'gt'})
-call s:p.e('<',
-      \{'id': 'lt'})
 " }}}
 
 " Callback functions {{{
@@ -216,7 +207,7 @@ function! s:Definition(elems) abort "{{{
   " Definition
   let label = a:elems[0]
   if !exists('s:root_element')
-    exec 'let s:root_element = '.label
+    exec 'let s:root_element = '.string(label)
   endif
   let mallet = a:elems[1]
   let expression = a:elems[2]
@@ -228,7 +219,7 @@ function! s:Definition(elems) abort "{{{
         \         '') .
         \ callback
   let result = 'call '.expression.",\n      \\{'id': ".label.
-        \(callback != '' ? ", 'on_match': '".callback."'" : '')."})"
+        \(callback != '' ? ", 'on_match': ".callback : '')."})"
   "echom 'Definition: ' . result
   return result
 endfunction "}}}
@@ -301,22 +292,16 @@ function! s:Option(elems) abort "{{{
     if s:setting_options == 0
       echoerr 'All options must be declared before definitions.'
     endif
-    exec 'let s:parser_options.'.a:elems[1][0].' = '.a:elems[3]
+    exec 'let s:parser_options['.a:elems[1][0].'] = '.a:elems[3]
   endif
   "echom 'Option: let s:parser_options.'.a:elems[1][0].' = '.a:elems[3]
   return ''
 endfunction "}}}
-function! s:Label(elems) abort "{{{
-  "echom string(a:elems)
-  let result = "'".a:elems[1]."'"
-  "echom 'Label: ' . result
-  return result
-endfunction "}}}
 function! s:Identifier(elems) abort "{{{
   "echom string(a:elems)
-  let id = a:elems
-  "echom 'Identifier: ' . id
-  return id
+  let result = "'".a:elems."'"
+  "echom 'Identifier: ' . result
+  return result
 endfunction "}}}
 function! s:Option_value(elems) abort "{{{
   "echom string(a:elems)
@@ -439,16 +424,6 @@ function! s:Open(elems) abort "{{{
   let open = a:elems[0]
   "echom 'Open: ' . open
   return open
-endfunction "}}}
-function! s:Gt(elems) abort "{{{
-  let gt = a:elems[0]
-  "echom 'Gt: ' . gt
-  return gt
-endfunction "}}}
-function! s:Lt(elems) abort "{{{
-  let lt = a:elems[0]
-  "echom 'Lt: ' . lt
-  return lt
 endfunction "}}}
 " }}}
 
