@@ -14,6 +14,7 @@ let g:loaded_vimpeg_peg = 1
 
 let vimpeg_peg_version = '0.1'
 
+"TODO fix not_has(p.e(
 " Allow use of line continuation.
 let s:save_cpo = &cpo
 set cpo&vim

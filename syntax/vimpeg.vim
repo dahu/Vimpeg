@@ -8,7 +8,7 @@
 
 " Stop when a (custom) syntax file was already loaded
 if exists("b:current_syntax")
-  "finish
+  finish
 endif
 
 " Allow use of line continuation.
@@ -16,9 +16,9 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 " Name of syntax item under the cursor
-nore <leader>n :echo synIDattr(synID(line("."), col("."), 1), "name")<CR>
+"nore <buffer><leader>n :echo synIDattr(synID(line("."), col("."), 1), "name")<CR>
 " Syntax stack of item under the cursor
-nore <leader>s :for id in synstack(line("."), col("."))<bar>echo synIDattr(id, "name")<bar>endfor<CR>
+"nore <buffer><leader>s :for id in synstack(line("."), col("."))<bar>echo synIDattr(id, "name")<bar>endfor<CR>
 
 syn region  vimpegOptRegion     start=/^\s*\./ end=/^\ze\s*\h/ contains=vimpegOption,vimpegComment
 syn match   vimpegOption        /^\s*\..*/ contains=vimpegOptLabel,vimpegAssign,vimpegOptValue,vimpegComment,vimpegOptBoolean contained display
@@ -28,6 +28,7 @@ syn keyword vimpegOptBoolean    true false on off contained
 syn match   vimpegOptEqual      /=/ containedin=vimpegOption display
 
 syn region  vimpegDefRegion     start=/^\ze\s*\h/ skip=/./ end=/\%$/ contains=vimpegError,vimpegDefinition,vimpegComment
+syn match   vimpegError         /\S/ contained containedin=vimpegDefinition display
 syn region  vimpegDefinition    start=/^\s*\ze\h/ end=/$/ contains=vimpegDefLabel,vimpegDefMallet,vimpegDefTag,vimpegComment contained display oneline
 syn match   vimpegDefTag        /\h\w*/ contained display
 syn match   vimpegDefLabel      /^\s*\h\w*/ contained display
