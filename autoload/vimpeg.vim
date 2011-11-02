@@ -126,6 +126,7 @@ function! vimpeg#parser(options) abort
     let errmsg = ''
     let is_matched = 1
     let ends = [0,0]
+    "echo "peg.Expression: " . string(a:input) . ' ' . string(self.pat)
     let ends[0] = match(a:input.str, self.pat, a:input.pos)
     let ends[1] = matchend(a:input.str, self.pat, a:input.pos)
     if ends[0] != a:input.pos
@@ -197,6 +198,7 @@ function! vimpeg#parser(options) abort
       " TODO: do I need to delete these elements if not matched?
       "call add(elements, m)
       unlet s
+      unlet m
     endfor
     if is_matched
       let pos = elements[-1]['pos']
@@ -235,6 +237,7 @@ function! vimpeg#parser(options) abort
         break
       endif
       unlet c
+      unlet m
     endfor
     if is_matched
       let pos = element['pos']
@@ -274,6 +277,7 @@ function! vimpeg#parser(options) abort
       if (self.max != 0) && (cnt >= self.max)
         break
       endif
+      " unlet m   ?
       let m = e.pmatch(a:input)
     endwhile
     if cnt < self.min
