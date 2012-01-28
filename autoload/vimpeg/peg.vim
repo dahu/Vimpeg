@@ -215,10 +215,13 @@ function! s:Definition(elems) abort "{{{
   "echom expression
   let expression = expression =~ '^''' ? 's:p.and(['.expression.']' : expression[:-2]
   let callback = len(a:elems[3]) > 0 ? a:elems[3][0] : ''
-  let callback = (callback =~ '^#' ?
-        \         get(s:parser_options, 'namespace', '') :
-        \         '') .
-        \ callback
+  let callback = substitute(callback, '^''#', "'".get(s:parser_options, 'namespace', '').'#', '')
+  " wasn't checking for   ^'#   and would have deleted callback either way
+  "let callback = (callback =~ '^#' ?
+        "\         get(s:parser_options, 'namespace', '') :
+        "\         '') .
+        "\ callback
+  "echom "using callback=".callback." in namespace=".get(s:parser_options, 'namespace', 'none')
   let result = 'call '.expression.",\n      \\{'id': ".label.
         \(callback != '' ? ", 'on_match': ".callback : '')."})"
   "echom 'Definition: ' . result
