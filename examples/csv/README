@@ -1,0 +1,13 @@
+This is an example of the PEG DSL way of specifying Vimpeg grammars.
+
+This directory (named csv_parser/) is intended to sit under your pathogen
+bundle/ dir.
+
+The autoload/ subdirectory contains two source files (csv_parser.vim and
+csv.vimpeg) and a third, generated file, called csv.vim.
+
+The plugin/csv_parser.vim provides the public interface functions,
+Parse_CSV(var), and Print_CSV(var).
+
+The test/ directory contains examples of how to call the csv() function - it
+is intended to be converted into a full-blown runVimTests() example.
