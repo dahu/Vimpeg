@@ -36,7 +36,7 @@ setlocal fo-=t fo+=croql
 "endif
 
 " A little help to speed typing the mallet.
-ino <buffer><expr> : getline('.') =~ '\m^\s*\h\w*\s*[^:]*$' ? '::= ' : ':'
+silent! ino <unique><buffer><expr> : getline('.') =~ '\m^\s*\h\w*\s*[^:]*$' ? '::= ' : ':'
 
 " Set 'comments'.
 "setlocal comments&
