@@ -1,7 +1,7 @@
 " Test RegEx strings.
 call vimtest#StartTap()
 
-let test_files = split(glob("valid_*.csv"), "\n")
+let test_files = split(glob("valid/valid_*.csv"), "\n")
 
 " Plan to run a lot of tests.
 call vimtap#Plan(len(test_files)*2)
