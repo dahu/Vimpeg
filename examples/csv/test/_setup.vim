@@ -1,4 +1,3 @@
-let &rtp = expand('<sfile>:p:h:h:h:h:h').'/vimpeg,'.&rtp.','.expand('<sfile>:p:h:h:h:h:h').'/vimpeg/after'
-let &rtp = expand('<sfile>:p:h:h:h:h:h').'/runVimTests,'.&rtp
-let &rtp = expand('<sfile>:p:h:h:h:h:h').'/vimtap,'.&rtp
-let &rtp = expand('<sfile>:p:h:h').','.&rtp
+source $HOME/.vim/runVimTests_setup.vim
+call PrependToRTP('Vimpeg')
+call PrependToRTP(expand('%:p:h:h:t'))
