@@ -4,17 +4,19 @@
 ; Adapted from ANTLR grammar by Nathaniel Harward <nharward@gmail.com>
 ;   as found on http://www.antlr.org/grammar/list
 
-.skip_white = true
+.skip_white = false
 .namespace = 'csv_parser'
 .parser_name = 'csv#parser'
 .root_element = 'file'
 
 file         ::=  record (newline record)* eof  -> #file
-record       ::=  (q_field | uq_field) (comma (q_field | uq_field))*  ->  #record
-q_field      ::=  dq (char | comma | dq dq | newline)* dq  -> #q_field
-uq_field     ::=  char*  -> #uq_field
-char         ::=  !(newline | dq | comma) '.'  -> #char
+record       ::=  (q_field | uq_field) ( s* comma (q_field | uq_field))*  ->  #record
+q_field      ::=  s* dq ( (char | comma | dqdq | newline))* dq  -> #q_field
+uq_field     ::=  s* char*  -> #uq_field
+char         ::=  !(newline | dq | s* comma) '.'  -> #char
 comma        ::=  ','
+dqdq         ::=  dq dq  -> #dqdq
 dq           ::=  '"'
-newline      ::=  ('\%x0d'? '\%x0a') | '\%x0d'
-eof          ::=  '\_$'
+newline      ::=  ('\%x0d'? '\%x0a') | '\%x0d'  -> #newline
+s            ::=  '\s'
+eof          ::=  '$'
