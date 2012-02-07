@@ -1,3 +1,2 @@
 source $HOME/.vim/runVimTests_setup.vim
-call PrependToRTP('Vimpeg')
-call PrependToRTP(expand('%:p:h:h:t'))
+call PrependToRTP(runVimTests_common['vimpeg'])
