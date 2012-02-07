@@ -484,7 +484,7 @@ function! vimpeg#peg#writefile(bang, args) range abort
   " Get the source
   let source_path = len(a:args) == 2 ? a:args[1] : expand('%')
   let s:parser_options = {}
-  unlet! let s:root_element
+  "unlet! let s:root_element
   if source_path == expand('%')
     let lines = getline(a:firstline, a:lastline)
   else

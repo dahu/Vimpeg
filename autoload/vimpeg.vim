@@ -40,18 +40,16 @@ set cpo&vim
 
 function! vimpeg#parser(options) abort
   let peg = {}
-  let peg.optSkipWhite = 0
+  let peg.optSkipWhite = get(a:options, 'skip_white', 0)
+  let peg.optIgnoreCase = get(a:options, 'ignore_case', 0)
   let peg.Symbols = {}
   let peg.Expression = {}
   let peg.Expression.parent = peg
   let peg.Expression.value = []
   let peg.Expression.id = ''
-  let peg.Expression.debug = 0
-  let peg.Expression.verbose = 0
-
-  if has_key(a:options, 'skip_white')
-    let peg.optSkipWhite = a:options['skip_white']
-  endif
+  "TODO: Make 'debug' useful. :h :debug maybe?
+  let peg.Expression.debug = get(a:options, 'debug', 0)
+  let peg.Expression.verbose = get(a:options, 'verbose', 0)
 
   func peg.callback(func, args) dict abort
     if a:func =~ '\.'
@@ -68,7 +66,7 @@ function! vimpeg#parser(options) abort
     let id = a:id
     if type(id) == type("")
       if !has_key(self.Symbols, id)
-        echoerr "Error: GetSym() : Symbol " . id . " is undefined."
+        echoerr "Error: GetSym() : Symbol '" . id . "' is undefined."
       else
         return self.Symbols[id]
       endif
@@ -86,7 +84,7 @@ function! vimpeg#parser(options) abort
       let self.Symbols[symbol['id']] = symbol
       return symbol
     else
-      echoerr "Error: AddSym() : Symbol " . symbol['id'] . " already defined."
+      echoerr "Error: AddSym() : Symbol '" . symbol['id'] . "' already defined."
     endif
   endfunc
 
@@ -127,17 +125,24 @@ function! vimpeg#parser(options) abort
     let is_matched = 1
     let ends = [0,0]
     "echo "peg.Expression: " . string(a:input) . ' ' . string(self.pat)
-    let ends[0] = match(a:input.str, self.pat, a:input.pos)
-    let ends[1] = matchend(a:input.str, self.pat, a:input.pos)
+    let ends[0] = match(a:input.str, '\m'.self.pat, a:input.pos)
+    let ends[1] = matchend(a:input.str, '\m'.self.pat, a:input.pos)
     if ends[0] != a:input.pos
-      let errmsg = "Failed to match /". self.pat . "/ at byte " . a:input.pos
-      if self.verbose
-        echoerr errmsg
+      let errmsg = "Failed to match '".self.id."' /". self.pat . "/ at byte " . a:input.pos . " on '" . a:input.str[a:input.pos:30] . "'"
+      if self.verbose == 2
+        "echom "peg.Expression: " . string(a:input) . ' ' . string(self.pat)
+        echohl WarningMsg
+        echom errmsg
+        echohl None
       endif
       let ends = [a:input.pos,a:input.pos]
       let is_matched = 0
     end
     if is_matched
+      if self.verbose
+        "echom "peg.Expression: " . string(a:input) . ' ' . string(self.pat)
+        echom "Matched '".self.id."' /". self.pat . "/ at byte " . a:input.pos . " on '" . a:input.str[a:input.pos:30] . "'"
+      endif
       let self.value = strpart(a:input.str, ends[0], ends[1] - ends[0])
       if has_key(self, 'on_match')
         let self.value = self.parent.callback(self.on_match, self.value)
@@ -152,9 +157,13 @@ function! vimpeg#parser(options) abort
       endif
     endif
   endfunc
-  func peg.Expression.match(input) dict  abort"{{{3
+  func peg.Expression.match(input) dict "{{{3
     let self.value = []
-    return self.pmatch({'str': a:input, 'pos': 0})
+    let save_ic = &ic
+    let &ignorecase = self.parent.optIgnoreCase ? 1 : 0
+    let result = self.pmatch({'str': a:input, 'pos': 0})
+    let &ignorecase = save_ic
+    return result
   endfunc
   func peg.Expression.pmatch(input) dict  abort"{{{3
     let save = a:input.pos
@@ -283,7 +292,9 @@ function! vimpeg#parser(options) abort
     if cnt < self.min
       " TODO: this should be an error
       if self.verbose
-        echo "Failed to match enough repeated items. Needed " . self.min . " but only found " . cnt
+        echohl ErrorMsg
+        echom "Failed to match enough repeated items. Needed " . self.min . " but only found " . cnt
+        echohl None
       endif
       let is_matched = 0
     endif
