@@ -1,0 +1,19 @@
+; AST Generation
+; Vimpeg Example Grammar
+; Barry Arthur, 2012 08 01
+
+.skip_white = true
+.namespace = 'unicorns'
+.parser_name = 'rnu#parser'
+.root_element = 'rnu'
+
+rnu     ::= command+
+command ::= cmd word* -> #command
+cmd     ::= print | normal | upper | lower | title | colour
+print   ::= 'P'
+normal  ::= 'N'
+upper   ::= 'U'
+lower   ::= 'L'
+title   ::= 'T'
+colour  ::= 'C' ('off' | 'red' | 'black' | 'white' | 'blue' | 'green' | 'yellow')
+word    ::= (!cmd '\w\+') -> #word
