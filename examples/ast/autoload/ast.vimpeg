@@ -15,5 +15,5 @@ normal  ::= 'N'
 upper   ::= 'U'
 lower   ::= 'L'
 title   ::= 'T'
-colour  ::= 'C' ('off' | 'red' | 'black' | 'white' | 'blue' | 'green' | 'yellow')
+colour  ::= 'C' '\w\+'
 word    ::= (!cmd '\w\+') -> #word

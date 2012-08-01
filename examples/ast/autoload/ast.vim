@@ -1,4 +1,4 @@
-" Parser compiled on Wed 01 Aug 2012 12:00:35 PM CST,
+" Parser compiled on Wed 01 Aug 2012 02:22:06 PM CST,
 " with VimPEG v0.2 and VimPEG Compiler v0.1
 " from "ast.vimpeg"
 " with the following grammar:
@@ -20,7 +20,7 @@
 " upper   ::= 'U'
 " lower   ::= 'L'
 " title   ::= 'T'
-" colour  ::= 'C' ('off' | 'red' | 'black' | 'white' | 'blue' | 'green' | 'yellow')
+" colour  ::= 'C' '\w\+'
 " word    ::= (!cmd '\w\+') -> #word
 
 let s:p = vimpeg#parser({'root_element': 'rnu', 'skip_white': 1, 'parser_name': 'rnu#parser', 'namespace': 'unicorns'})
@@ -40,7 +40,7 @@ call s:p.e('L',
       \{'id': 'lower'})
 call s:p.e('T',
       \{'id': 'title'})
-call s:p.and([s:p.e('C'), s:p.or([s:p.e('off'), s:p.e('red'), s:p.e('black'), s:p.e('white'), s:p.e('blue'), s:p.e('green'), s:p.e('yellow')])],
+call s:p.and([s:p.e('C'), s:p.e('\w\+')],
       \{'id': 'colour'})
 call s:p.and([s:p.not_has('cmd'), s:p.e('\w\+')],
       \{'id': 'word', 'on_match': 'unicorns#word'})

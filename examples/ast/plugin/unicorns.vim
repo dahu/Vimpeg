@@ -8,43 +8,38 @@ exe "so " . expand('<sfile>:h'). '/../autoload/unicorns.vim'
 func! Walk(ast, visitor)
   let val = []
   for node in a:ast
-    if type(node) == type([])
-      "echo node
-      call add(val, call(a:visitor[node[0]], [node[1]], a:visitor))
-    endif
+    call add(val, call(a:visitor[node[0]], [node[1]], a:visitor))
     unlet node
   endfor
-  return join(val)
+  return join(val, '|echon " "|')
 endfunc
 
 " rainbows and unicorns
 function! RnU()
   let rnu = {}
   let rnu.case = 'normalcase'
-  func rnu.apply(func, args) dict
-    return join(map(a:args, 'call(a:func, [v:val], self)'))
-  endfunc
-  func rnu.P(args) dict
-    return self.apply(self.case, a:args)
+  let rnu.output = ''
+  func rnu.emit(args) dict
+    return 'echon "' . join(map(a:args, 'call(self.case, [v:val], self)')) . '"'
   endfunc
   func rnu.N(args) dict
     let self.case = self.normalcase
-    return self.apply(self.case, a:args)
+    return self.emit(a:args)
   endfunc
   func rnu.U(args) dict
     let self.case = 'toupper'
-    return self.apply(self.case, a:args)
+    return self.emit(a:args)
   endfunc
   func rnu.L(args) dict
     let self.case = 'tolower'
-    return self.apply(self.case, a:args)
+    return self.emit(a:args)
   endfunc
   func rnu.T(args) dict
     let self.case = self.titlecase
-    return self.apply(self.case, a:args)
+    return self.emit( a:args)
   endfunc
   func rnu.C(args) dict
-    return '<color '. a:args[0] .'>' . self.apply(self.case, a:args[1]) . '</color>'
+    return 'echohl '. a:args[0] .'|' . self.emit(a:args[1]) . '|echohl None'
   endfunc
   " dictless helpers
   func rnu.normalcase(args)
@@ -60,6 +55,7 @@ function! Unicorns_AST(string)
   return g:rnu#parser.match(a:string).value
 endfunction
 
-let ast = Unicorns_AST('P T unicorns now served with U lots of C red extra cheese N aNd sAuCe!')
-echo ast
+let ast = Unicorns_AST('T unicorns now served with U lots of C error extra cheese N aNd sAuCe!')
 echo Walk(ast, RnU())
+echon "\n"
+exe Walk(ast, RnU())
