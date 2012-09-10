@@ -6,3 +6,6 @@
 vimball.txt
 *.orig
 tags
+test/*.msgout
+test/*.msgresult
+test/*.tap
