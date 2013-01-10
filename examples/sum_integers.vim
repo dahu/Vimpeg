@@ -18,13 +18,14 @@ endfunction
 function! Sum(str)
   let res = g:expression.match(a:str)
   if res['is_matched']
+    echo res.value
     return SumList(res['value'])
   else
     return res['errmsg']
   endif
 endfunction
 
-echo Sum('123')
-echo Sum('1 + 2')
+"echo Sum('123')
+"echo Sum('1 + 2')
 echo Sum('1 + 2 + 3')
-echo Sum('12 + 34 + 56 + 78')
+"echo Sum('12 + 34 + 56 + 78')

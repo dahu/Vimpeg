@@ -168,6 +168,7 @@ function! vimpeg#parser(options) abort
   func peg.Expression.pmatch(input) dict  abort"{{{3
     let save = a:input.pos
     call self.skip_white(a:input)
+    "echo 'after skip_white -->' . string(a:input) . '<--'
     let m = self.matcher(a:input)
     " TODO: Prove this logic right
     if !m['is_matched']
@@ -175,6 +176,7 @@ function! vimpeg#parser(options) abort
     else
       let a:input.pos = m['pos']
     endif
+    "echo 'after matcher -->' . string(m) . '<--'
     return m
   endfunc
 

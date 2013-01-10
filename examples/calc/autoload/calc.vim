@@ -1,4 +1,4 @@
-" Parser compiled on Mon 09 Jan 2012 08:08:28 AM CST,
+" Parser compiled on Tue 31 Jul 2012 03:57:53 PM CST,
 " with VimPEG v0.2 and VimPEG Compiler v0.1
 " from "calc.vimpeg"
 " with the following grammar:
@@ -26,20 +26,20 @@ let s:p = vimpeg#parser({'root_element': 'calc', 'skip_white': 1, 'parser_name':
 call s:p.or(['add', 'sub', 'prod'],
       \{'id': 'calc'})
 call s:p.and(['prod', s:p.e('+'), 'calc'],
-      \{'id': 'add', 'on_match': calculator#add})
+      \{'id': 'add', 'on_match': 'calculator#add'})
 call s:p.and(['prod', s:p.e('-'), 'calc'],
-      \{'id': 'sub', 'on_match': calculator#sub})
+      \{'id': 'sub', 'on_match': 'calculator#sub'})
 call s:p.or(['mul', 'div', 'atom'],
       \{'id': 'prod'})
 call s:p.and(['atom', s:p.e('\*'), 'prod'],
-      \{'id': 'mul', 'on_match': calculator#mul})
+      \{'id': 'mul', 'on_match': 'calculator#mul'})
 call s:p.and(['atom', s:p.e('\/'), 'prod'],
-      \{'id': 'div', 'on_match': calculator#div})
+      \{'id': 'div', 'on_match': 'calculator#div'})
 call s:p.and([s:p.e('('), 'calc', s:p.e(')')],
-      \{'id': 'ncalc', 'on_match': calculator#nCalc})
+      \{'id': 'ncalc', 'on_match': 'calculator#nCalc'})
 call s:p.or(['num', 'ncalc'],
       \{'id': 'atom'})
 call s:p.e('\d\+',
-      \{'id': 'num', 'on_match': calculator#num})
+      \{'id': 'num', 'on_match': 'calculator#num'})
 
 let g:calc#parser = s:p.GetSym('calc')
