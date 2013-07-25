@@ -514,7 +514,14 @@ function! vimpeg#peg#writefile(bang, args) range abort
           \ 'let s:p = vimpeg#parser('. string(s:parser_options).')'] +
           \ peg_commands +
           \ ['',
-          \ 'let g:'.parser_name.' = s:p.GetSym('''.root_element.''')']
+          \ 'let g:'.parser_name.' = s:p.GetSym('''.root_element.''')',
+          \ 'function! '.parser_name.'#parse(in)',
+          \ '  return g:'.parser_name.'.match(a:in)',
+          \ 'endfunction',
+          \ 'function! '.parser_name.'#parser()',
+          \ '  return deepcopy(g:'.parser_name.')',
+          \ 'endfunction',
+          \ ]
 
     let result =  writefile(content, parser_path) + 1
     echohl WarningMsg
