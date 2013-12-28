@@ -43,6 +43,7 @@ function! vimpeg#parser(options) abort
   let peg.optSkipWhite = get(a:options, 'skip_white', 0)
   let peg.optIgnoreCase = get(a:options, 'ignore_case', 0)
   let peg.Symbols = {}
+  let peg.Cache = {}                " memoisation
   let peg.Expression = {}
   let peg.Expression.parent = peg
   let peg.Expression.value = []
@@ -86,6 +87,23 @@ function! vimpeg#parser(options) abort
     else
       echoerr "Error: AddSym() : Symbol '" . symbol['id'] . "' already defined."
     endif
+  endfunc
+
+  " memoisation
+  func peg.CacheGet(input, id) dict
+    return get(self.Cache, a:input.pos . a:id, '')
+  endfunc
+
+  func peg.CacheSet(input, id, obj) dict
+    let self.Cache[ a:input.pos . a:id ] = a:obj
+  endfunc
+
+  func peg.Expression.CacheGet(input, id) dict
+    return self.parent.CacheGet(a:input, a:id)
+  endfunc
+
+  func peg.Expression.CacheSet(input, id, obj) dict
+    return self.parent.CacheSet(a:input, a:id, a:obj)
   endfunc
 
   func peg.Expression.AddSym(symbol) dict  abort"{{{2
@@ -165,18 +183,23 @@ function! vimpeg#parser(options) abort
     let &ignorecase = save_ic
     return result
   endfunc
+
   func peg.Expression.pmatch(input) dict  abort"{{{3
     let save = a:input.pos
     call self.skip_white(a:input)
-    "echo 'after skip_white -->' . string(a:input) . '<--'
-    let m = self.matcher(a:input)
-    " TODO: Prove this logic right
+    " memoisation
+    let c = self.CacheGet(a:input, self.id)
+    if type(c) == type({})
+      let m = c
+    else
+      let m = self.matcher(a:input)
+      call self.CacheSet(a:input, self.id, m)
+    endif
     if !m['is_matched']
       let a:input.pos = save
     else
       let a:input.pos = m['pos']
     endif
-    "echo 'after matcher -->' . string(m) . '<--'
     return m
   endfunc
 
