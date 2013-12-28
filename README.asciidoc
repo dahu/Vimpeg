@@ -1,0 +1,25 @@
+VimPEG
+======
+
+__A memoizing Parsing Expression Grammar parser generator for Vim.__
+
+Features
+--------
+
+* Tolerable API for specifying standard parsing expression grammars.
+* Handles the standard PEG forms:
+** Simple Expressions (uses Vim's regular expressions), eg: `peg.e('\d\+')`
+** Expression Sequences, eg: `peg.and(['digits', 'plus', 'digits'])`
+** Ordered Choice, eg: `peg.or(['add', 'sub'])`
+** Repetition, eg: `peg.many(['
+** Predicates, eg: `peg.has('\w\+')` and `peg.has_not('\n')`
+** Semantic Handlers in the form of `on_match` callback functions.
+* A PEG grammar to Vimpeg API generator so that grammars can be
+  expressed in standard PEG form.
+
+Examples
+--------
+
+* Simple Calculator
+
+*Note:* See the examples/ directory for a growing number of grammars.
