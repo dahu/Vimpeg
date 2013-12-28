@@ -35,7 +35,7 @@ endif
 let g:loaded_vimpeg_lib = 1
 
 " Allow use of line continuation.
-let s:save_cpo = &cpo
+let vimpeg_save_cpo = &cpo
 set cpo&vim
 
 function! vimpeg#parser(options) abort
@@ -375,7 +375,7 @@ function! vimpeg#parser(options) abort
   return peg
 endfunction
 
-let &cpo = s:save_cpo
-unlet s:save_cpo
+let &cpo = vimpeg_save_cpo
+" unlet vimpeeg_save_cpo
 
 " vim: et sw=2 fdm=marker
