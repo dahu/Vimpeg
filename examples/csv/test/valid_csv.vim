@@ -19,13 +19,13 @@ for test in test_files
   "" Report:
   let msg = csv_data . ' is ' . (match ? '' : 'not ') .
         \ 'valid and it was ' . (result.is_matched ? '' : 'not ') . 'matched.'
-  call vimtap#Ok(passed, msg)
+  call vimtap#Ok(passed, 'passed', msg)
 
   " Did it parse it as expected?
   let passed = string(csv_value) == string(result.value)
   let msg = csv_data . ' was ' . (passed ? '' : 'not ') .
         \ 'parsed as expected => ' . string(csv_value) . ' vs ' . string(result.value)
-  call vimtap#Ok(passed, msg)
+  call vimtap#Ok(passed, 'passed', msg)
 endfor
 
 call vimtest#Quit()
