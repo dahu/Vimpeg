@@ -1,23 +1,23 @@
-let peg = vimpeg#parser({})
+let peg = vimpeg#parser({'skip_white': 1})
 
 " reused grammar elements
-let digits = peg.e('\d\+', {'id': 'digits', 'on_match': function('str2nr')})
+let digits = peg.e('\d\+', {'id': 'digits', 'on_match': 'str2nr'})
 let words = peg.e('\w\+', {'id': 'words'})
 let nums_words = peg.and(['digits', 'words'], {'id': 'nums_words'})
 
 func! Plus(elems)
-  return a:elems[0][0] + a:elems[2][0]
+  return a:elems[0] + a:elems[2]
 endfunc
 
 let plus = peg.e('+', {'id': 'plus'})
-let nums_plus_nums = peg.and(['digits', 'plus', 'digits'], {'id': 'nums_plus_nums', 'on_match': function('Plus')})
+let nums_plus_nums = peg.and(['digits', 'plus', 'digits'], {'id': 'nums_plus_nums', 'on_match': 'Plus'})
 
 func! Times(elems)
-  return a:elems[0][0] * a:elems[2][0]
+  return a:elems[0] * a:elems[2]
 endfunc
 
 let times = peg.e('\*', {'id': 'times'})
-let nums_times_nums = peg.and(['digits', 'times', 'digits'], {'id': 'nums_times_nums', 'on_match': function('Times')})
+let nums_times_nums = peg.and(['digits', 'times', 'digits'], {'id': 'nums_times_nums', 'on_match': 'Times'})
 
 let expr = peg.or(['nums_times_nums', 'nums_plus_nums'], {'id': 'expr'})
 

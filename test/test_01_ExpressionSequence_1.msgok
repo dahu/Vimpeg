@@ -1,3 +1,5 @@
-{'id': 'words', 'pattern': '\w\+', 'ends': [0, 5], 'value': ['hello'], 'pos': 5, 'is_matched': 1}
-{'id': 'nums_words', 'elements': [{'id': 'digits', 'pattern': '\d\+', 'ends': [0, 3], 'value': [123], 'pos': 3, 'is_matched': 1}, {'id': 'words', 'pattern': '\w\+', 'ends': [4, 7], 'value': ['abc'], 'pos': 7, 'is_matched': 1}], 'value': [[123], ['abc']], 'pos': 7, 'is_matched': 1}
-[[123], ['abc']] == [[123], ['abc']]
+
+{'errmsg': '', 'id': 'words', 'pattern': '\w\+', 'ends': [0, 5], 'value': 'hello', 'pos': 5, 'is_matched': 1}
+{'errmsg': '', 'id': 'nums_words', 'elements': [{'errmsg': '', 'id': 'digits', 'pattern': '\d\+', 'ends': [0, 3], 'value': 123, 'pos': 3, 'is_matched': 1}, {'errmsg': '', 'id': 'words', 'pattern': '\w\+', 'ends': [3, 6], 'value': 'abc', 'pos': 6, 'is_matched': 1}], 'value': [123, 'abc'], 'pos': 6, 'is_matched': 1}
+[123, 'abc'] == [123, 'abc']
+

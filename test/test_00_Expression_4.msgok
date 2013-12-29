@@ -1,2 +1,3 @@
-{'id': 'digits', 'pattern': '\d\+', 'ends': [0, 0], 'value': [], 'pos': 0, 'is_matched': 0}
-{'id': 'digits', 'pattern': '\d\+', 'ends': [0, 0], 'value': [], 'pos': 0, 'is_matched': 0}
+
+{'errmsg': 'Failed to match ''digits'' /\d\+/ at byte 0 on ''''', 'id': 'digits', 'pattern': '\d\+', 'ends': [0, 0], 'value': [], 'pos': 0, 'is_matched': 0}
+{'errmsg': 'Failed to match ''digits'' /\d\+/ at byte 0 on ''a''', 'id': 'digits', 'pattern': '\d\+', 'ends': [0, 0], 'value': [], 'pos': 0, 'is_matched': 0}
