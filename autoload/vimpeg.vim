@@ -38,6 +38,13 @@ let g:loaded_vimpeg_lib = 1
 let vimpeg_save_cpo = &cpo
 set cpo&vim
 
+" memoisation
+let s:sym = 0
+function! NextSym()
+  let s:sym += 1
+  return s:sym
+endfunction
+
 function! vimpeg#parser(options) abort
   let peg = {}
   let peg.optSkipWhite = get(a:options, 'skip_white', 0)
@@ -48,6 +55,7 @@ function! vimpeg#parser(options) abort
   let peg.Expression.parent = peg
   let peg.Expression.value = []
   let peg.Expression.id = ''
+  let peg.Expression.sym = 0  " memoisation
   "TODO: Make 'debug' useful. :h :debug maybe?
   let peg.Expression.debug = get(a:options, 'debug', 0)
   let peg.Expression.verbose = get(a:options, 'verbose', 0)
@@ -90,20 +98,32 @@ function! vimpeg#parser(options) abort
   endfunc
 
   " memoisation
-  func peg.CacheGet(input, id) dict
-    return get(self.Cache, a:input.pos . a:id, '')
+  func peg.MkSym(pos, sym) dict
+    return a:pos . '_' . a:sym
   endfunc
 
-  func peg.CacheSet(input, id, obj) dict
-    let self.Cache[ a:input.pos . a:id ] = a:obj
+  func peg.CacheClear() dict
+   let self.Cache = {}
   endfunc
 
-  func peg.Expression.CacheGet(input, id) dict
-    return self.parent.CacheGet(a:input, a:id)
+  func peg.CacheGet(pos, sym) dict
+   return get(self.Cache, self.MkSym(a:pos, a:sym), '')
   endfunc
 
-  func peg.Expression.CacheSet(input, id, obj) dict
-    return self.parent.CacheSet(a:input, a:id, a:obj)
+  func peg.CacheSet(pos, sym, obj) dict
+    let self.Cache[self.MkSym(a:pos, a:sym)] = a:obj
+  endfunc
+
+  func peg.Expression.CacheClear() dict
+    return self.parent.CacheClear()
+  endfunc
+
+  func peg.Expression.CacheGet(pos, sym) dict
+    return self.parent.CacheGet(a:pos, a:sym)
+  endfunc
+
+  func peg.Expression.CacheSet(pos, sym, obj) dict
+    return self.parent.CacheSet(a:pos, a:sym, a:obj)
   endfunc
 
   func peg.Expression.AddSym(symbol) dict  abort"{{{2
@@ -133,6 +153,7 @@ function! vimpeg#parser(options) abort
   func peg.Expression.new(pat, ...) dict  abort"{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
     let e.pat = a:pat
+    let e.sym = NextSym()
     if e.id != ''
       call self.AddSym(e)
     endif
@@ -178,6 +199,7 @@ function! vimpeg#parser(options) abort
   func peg.Expression.match(input) dict "{{{3
     let self.value = []
     let save_ic = &ic
+    call self.CacheClear()  " memoisation
     let &ignorecase = self.parent.optIgnoreCase ? 1 : 0
     let result = self.pmatch({'str': a:input, 'pos': 0})
     let &ignorecase = save_ic
@@ -187,14 +209,17 @@ function! vimpeg#parser(options) abort
   func peg.Expression.pmatch(input) dict  abort"{{{3
     let save = a:input.pos
     call self.skip_white(a:input)
+
     " memoisation
-    let c = self.CacheGet(a:input, self.id)
+    let pos = a:input.pos
+    let c = self.CacheGet(pos, self.sym)
     if type(c) == type({})
       let m = c
     else
       let m = self.matcher(a:input)
-      call self.CacheSet(a:input, self.id, m)
+      call self.CacheSet(pos, self.sym, m)
     endif
+
     if !m['is_matched']
       let a:input.pos = save
     else
@@ -207,6 +232,7 @@ function! vimpeg#parser(options) abort
   func! peg.ExpressionSequence.new(seq, ...) dict  abort"{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
     let e.seq = a:seq
+    let e.sym = NextSym()
     if e.id != ''
       call self.AddSym(e)
     endif
@@ -250,6 +276,7 @@ function! vimpeg#parser(options) abort
   func! peg.ExpressionOrderedChoice.new(choices, ...) dict  abort"{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
     let e.choices = a:choices
+    let e.sym = NextSym()
     if e.id != ''
       call self.AddSym(e)
     endif
@@ -291,6 +318,7 @@ function! vimpeg#parser(options) abort
     let e.exp = copy(a:exp)
     let e.min = a:min
     let e.max = a:max
+    let e.sym = NextSym()
     if e.id != ''
       call self.AddSym(e)
     endif
@@ -340,6 +368,7 @@ function! vimpeg#parser(options) abort
     let e = self.Copy(a:0 ? a:000[0] : {})
     let e.exp = a:exp
     let e.type = a:type
+    let e.sym = NextSym()
     if e.id != ''
       call self.AddSym(e)
     endif
