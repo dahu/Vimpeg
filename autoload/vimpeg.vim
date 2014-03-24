@@ -61,7 +61,7 @@ function! vimpeg#parser(options) abort
   let peg.Expression.verbose = get(a:options, 'verbose', 0)
 
   func peg.callback(func, args) dict abort
-    if a:func =~ '\.'
+    if (type(a:func) == type('')) && (a:func =~ '\.')
       let func = (a:func =~ '^\a:' ? '' : 'g:').a:func
       let dict = substitute(func, '^\(.*\)\..\+', '\1', '')
       let cmd = 'call('.func.', [a:args], '.dict.')'
