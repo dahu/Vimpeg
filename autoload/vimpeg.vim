@@ -152,6 +152,7 @@ function! vimpeg#parser(options) abort
   " (input, [{id,debug,verbose}])
   func peg.Expression.new(pat, ...) dict  abort"{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
+    let e.atom = 'Expression'
     let e.pat = a:pat
     let e.sym = NextSym()
     if e.id != ''
@@ -187,7 +188,7 @@ function! vimpeg#parser(options) abort
         let self.value = self.parent.callback(self.on_match, self.value)
       endif
     endif
-    return {'id' : self.id, 'pattern' : self.pat, 'ends' : ends, 'pos': ends[1], 'value' : self.value, 'is_matched': is_matched, 'errmsg': errmsg}
+    return {'id' : self.id, 'atom': self.atom, 'pattern' : self.pat, 'ends' : ends, 'pos': ends[1], 'value' : self.value, 'is_matched': is_matched, 'errmsg': errmsg}
   endfunc
   func peg.Expression.skip_white(input) dict  abort"{{{3
     if self.parent.optSkipWhite == 1
@@ -228,9 +229,55 @@ function! vimpeg#parser(options) abort
     return m
   endfunc
 
+  " New Token() atom to match like an Expression, but not store
+  " matched element in the AST
+  let peg.Token = copy(peg.Expression) "{{{2
+  func! peg.Token.new(pat, ...) dict  abort"{{{3
+    let e = self.Copy(a:0 ? a:000[0] : {})
+    let e.atom = 'Token'
+    let e.pat = a:pat
+    let e.sym = NextSym()
+    if e.id != ''
+      call self.AddSym(e)
+    endif
+    return e
+  endfunc
+
+  func! peg.Token.matcher(input) dict  abort"{{{3
+    let errmsg = ''
+    let is_matched = 1
+    let ends = [0,0]
+    " echo "peg.Token: " . string(a:input) . ' ' . string(self.pat)
+    let ends[0] = match(a:input.str, '\m'.self.pat, a:input.pos)
+    let ends[1] = matchend(a:input.str, '\m'.self.pat, a:input.pos)
+    if ends[0] != a:input.pos
+      let errmsg = "Failed to match Token '".self.id."' /". self.pat . "/ at byte " . a:input.pos . " on '" . a:input.str[a:input.pos:30] . "'"
+      if self.verbose == 2
+        "echom "peg.Token: " . string(a:input) . ' ' . string(self.pat)
+        echohl WarningMsg
+        echom errmsg
+        echohl None
+      endif
+      let ends = [a:input.pos,a:input.pos]
+      let is_matched = 0
+    end
+    if is_matched
+      if self.verbose
+        "echom "peg.Token: " . string(a:input) . ' ' . string(self.pat)
+        echom "Matched Token'".self.id."' /". self.pat . "/ at byte " . a:input.pos . " on '" . a:input.str[a:input.pos:30] . "'"
+      endif
+      " no point saving the value or having a callback
+      " for a match-only, unstored token
+    endif
+    return {'id' : self.id, 'atom': self.atom, 'pattern' : self.pat, 'ends' : ends, 'pos': ends[1], 'value' : '', 'is_matched': is_matched, 'errmsg': errmsg}
+  endfunc
+
+  " TODO: Add Token handling to other Atoms
+
   let peg.ExpressionSequence = copy(peg.Expression) "{{{2
   func! peg.ExpressionSequence.new(seq, ...) dict  abort"{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
+    let e.atom = 'ExpressionSequence'
     let e.seq = a:seq
     let e.sym = NextSym()
     if e.id != ''
@@ -243,25 +290,23 @@ function! vimpeg#parser(options) abort
     let elements = []
     let is_matched = 1
     let errmsg = ''
-    " TODO: should this be -1 or 0?
     let pos = -1
     for s in self.seq
       let e = copy(self.GetSym(s))
       let e.elements = []
       let m = e.pmatch(a:input)
-      " BEA: Expermineting with adding even possible fails for errmsg...
       call add(elements, m)
       if !m['is_matched']
         let is_matched = 0
         break
       endif
-      " TODO: do I need to delete these elements if not matched?
-      "call add(elements, m)
       unlet s
       unlet m
     endfor
     if is_matched
       let pos = elements[-1]['pos']
+      " Don't keep Tokens
+      call filter(elements, 'v:val["atom"] != "Token"')
       let self.value = map(copy(elements), 'v:val["value"]')
       if has_key(self, 'on_match')
         let self.value = self.parent.callback(self.on_match, self.value)
@@ -269,12 +314,13 @@ function! vimpeg#parser(options) abort
     else
       let errmsg = "Failed to match Sequence at byte " . a:input.pos
     endif
-    return {'id': self.id, 'elements': elements, 'pos': pos, 'value': self.value, 'is_matched': is_matched, 'errmsg': errmsg}
+    return {'id': self.id, 'atom': self.atom, 'elements': elements, 'pos': pos, 'value': self.value, 'is_matched': is_matched, 'errmsg': errmsg}
   endfunc
 
   let peg.ExpressionOrderedChoice = copy(peg.Expression) "{{{2
   func! peg.ExpressionOrderedChoice.new(choices, ...) dict  abort"{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
+    let e.atom = 'ExpressionOrderedChoice'
     let e.choices = a:choices
     let e.sym = NextSym()
     if e.id != ''
@@ -309,12 +355,13 @@ function! vimpeg#parser(options) abort
     else
       let errmsg = "Failed to match Ordered Choice at byte " . a:input.pos
     endif
-    return {'id': self.id, 'elements': [element], 'pos': pos, 'value': self.value, 'is_matched': is_matched, 'errmsg': errmsg}
+    return {'id': self.id, 'atom': self.atom, 'elements': [element], 'pos': pos, 'value': self.value, 'is_matched': is_matched, 'errmsg': errmsg}
   endfunc
 
   let peg.ExpressionMany = copy(peg.Expression) "{{{2
   func! peg.ExpressionMany.new(exp, min, max, ...) dict  abort"{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
+    let e.atom = 'ExpressionMany'
     let e.exp = copy(a:exp)
     let e.min = a:min
     let e.max = a:max
@@ -360,12 +407,13 @@ function! vimpeg#parser(options) abort
         endif
       endif
     endif
-    return {'id': self.id, 'elements': elements, 'pos': pos, 'count': cnt, 'min': self.min, 'max': self.max, 'value': self.value, 'is_matched': is_matched}
+    return {'id': self.id, 'atom': self.atom, 'elements': elements, 'pos': pos, 'count': cnt, 'min': self.min, 'max': self.max, 'value': self.value, 'is_matched': is_matched}
   endfunc
 
   let peg.ExpressionPredicate = copy(peg.Expression) "{{{2
   func! peg.ExpressionPredicate.new(exp, type, ...) dict  abort"{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
+    let e.atom = 'ExpressionPredicate'
     let e.exp = a:exp
     let e.type = a:type
     let e.sym = NextSym()
@@ -394,11 +442,14 @@ function! vimpeg#parser(options) abort
         let self.value = self.parent.callback(self.on_match, self.value)
       endif
     endif
-    return {'id': self.id, 'elements': [element], 'pos': pos, 'type': self.type, 'value': self.value, 'is_matched': is_matched}
+    return {'id': self.id, 'atom': self.atom, 'elements': [element], 'pos': pos, 'type': self.type, 'value': self.value, 'is_matched': is_matched}
   endfunc
 
   func peg.e(exp, ...) dict  abort"{{{2
     return self.Expression.new(a:exp, a:0 ? a:000[0] : {})
+  endfunc
+  func peg.t(exp, ...) dict  abort"{{{2
+    return self.Token.new(a:exp, a:0 ? a:000[0] : {})
   endfunc
   func peg.and(seq, ...) dict abort
     return self.ExpressionSequence.new(a:seq, a:0 ? a:000[0] : {})
