@@ -1,3 +1,5 @@
+func! calculator#init()
+endfunc
 func! calculator#add(elems)
   "echo "Add: " . string(a:elems)
   return a:elems[0] + a:elems[2]

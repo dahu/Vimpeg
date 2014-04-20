@@ -1,4 +1,4 @@
-" Parser compiled on Tue 31 Jul 2012 03:57:53 PM CST,
+" Parser compiled on Sun 20 Apr 2014 09:14:36 AM CST,
 " with VimPEG v0.2 and VimPEG Compiler v0.1
 " from "calc.vimpeg"
 " with the following grammar:
@@ -9,7 +9,7 @@
 " 
 " .skip_white = true
 " .namespace = 'calculator'
-" .parser_name = 'calc#parser'
+" .parser_name = 'calc'
 " .root_element = 'calc'
 " 
 " calc   ::=  add | sub | prod
@@ -22,7 +22,7 @@
 " atom   ::=  num | ncalc
 " num    ::=  '\d\+'              ->  #num
 
-let s:p = vimpeg#parser({'root_element': 'calc', 'skip_white': 1, 'parser_name': 'calc#parser', 'namespace': 'calculator'})
+let s:p = vimpeg#parser({'root_element': 'calc', 'skip_white': 1, 'parser_name': 'calc', 'namespace': 'calculator'})
 call s:p.or(['add', 'sub', 'prod'],
       \{'id': 'calc'})
 call s:p.and(['prod', s:p.e('+'), 'calc'],
@@ -42,4 +42,10 @@ call s:p.or(['num', 'ncalc'],
 call s:p.e('\d\+',
       \{'id': 'num', 'on_match': 'calculator#num'})
 
-let g:calc#parser = s:p.GetSym('calc')
+let g:calc = s:p.GetSym('calc')
+function! calc#parse(in)
+  return g:calc.match(a:in)
+endfunction
+function! calc#parser()
+  return deepcopy(g:calc)
+endfunction

@@ -536,7 +536,7 @@ function! vimpeg#peg#writefile(bang, args) range abort
 endfunction
 " }}}
 
-nore <leader><leader> :w<bar>so %<bar>echo join(vimpeg#peg#parse(map(getline('.', '.'), 'substitute(v:val, ''^"\s*'', "", "")')), "\n")<CR>
+" nore <leader><leader> :w<bar>so %<bar>echo join(vimpeg#peg#parse(map(getline('.', '.'), 'substitute(v:val, ''^"\s*'', "", "")')), "\n")<CR>
 
 let &cpo = s:save_cpo
 unlet s:save_cpo

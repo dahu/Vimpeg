@@ -1,4 +1,6 @@
-so ../plugin/calculator.vim
+let &rtp .= ',' . expand('<sfile>:p:h:h')
+runtime plugin/calculator.vim
+
 function! Test()
   echo (45 + 123)                  . '==' . Calc('45 + 123')
   echo (123 - 45)                  . '==' . Calc('123 - 45')

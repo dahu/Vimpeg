@@ -4,7 +4,7 @@
 
 .skip_white = true
 .namespace = 'calculator'
-.parser_name = 'calc#parser'
+.parser_name = 'calc'
 .root_element = 'calc'
 
 calc   ::=  add | sub | prod
