@@ -126,22 +126,22 @@ function! vimpeg#parser(options) abort
     return self.parent.CacheSet(a:pos, a:sym, a:obj)
   endfunc
 
-  func peg.Expression.AddSym(symbol) dict  abort"{{{2
+  func peg.Expression.AddSym(symbol) dict  abort "{{{2
     return self.parent.AddSym(a:symbol)
   endfunc
 
-  func peg.Expression.GetSym(id) dict  abort"{{{2
+  func peg.Expression.GetSym(id) dict  abort "{{{2
     return self.parent.GetSym(a:id)
   endfunc
 
-  func peg.Expression.SetOptions(options) dict  abort"{{{2
+  func peg.Expression.SetOptions(options) dict  abort "{{{2
     for o in ['id', 'debug', 'verbose', 'on_match']
       if has_key(a:options, o)
         exe "let self." . o . " = a:options['" . o . "']"
       endif
     endfor
   endfunc
-  func peg.Expression.Copy(...) dict  abort"{{{2
+  func peg.Expression.Copy(...) dict  abort "{{{2
     let e = copy(self)
     if a:0
       call e.SetOptions(a:000[0])
@@ -150,7 +150,7 @@ function! vimpeg#parser(options) abort
   endfunc
 
   " (input, [{id,debug,verbose}])
-  func peg.Expression.new(pat, ...) dict  abort"{{{3
+  func peg.Expression.new(pat, ...) dict  abort "{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
     let e.pat = a:pat
     let e.sym = NextSym()
@@ -159,7 +159,7 @@ function! vimpeg#parser(options) abort
     endif
     return e
   endfunc
-  func peg.Expression.matcher(input) dict  abort"{{{3
+  func peg.Expression.matcher(input) dict  abort "{{{3
     let errmsg = ''
     let is_matched = 1
     let ends = [0,0]
@@ -167,7 +167,7 @@ function! vimpeg#parser(options) abort
     let ends[0] = match(a:input.str, '\m'.self.pat, a:input.pos)
     let ends[1] = matchend(a:input.str, '\m'.self.pat, a:input.pos)
     if ends[0] != a:input.pos
-      let errmsg = "Failed to match '".self.id."' /". self.pat . "/ at byte " . a:input.pos . " on '" . a:input.str[a:input.pos:30] . "'"
+      let errmsg = "Failed to match '".self.id."' /". self.pat . "/ at byte " . a:input.pos . " on '" . a:input.str[a:input.pos : a:input.pos + 30] . "'"
       if self.verbose == 2
         "echom "peg.Expression: " . string(a:input) . ' ' . string(self.pat)
         echohl WarningMsg
@@ -180,7 +180,7 @@ function! vimpeg#parser(options) abort
     if is_matched
       if self.verbose
         "echom "peg.Expression: " . string(a:input) . ' ' . string(self.pat)
-        echom "Matched '".self.id."' /". self.pat . "/ at byte " . a:input.pos . " on '" . a:input.str[a:input.pos:30] . "'"
+        echom "Matched '".self.id."' /". self.pat . "/ at byte " . a:input.pos . " on '" . a:input.str[a:input.pos : a:input.pos + 30] . "'"
       endif
       let self.value = strpart(a:input.str, ends[0], ends[1] - ends[0])
       if has_key(self, 'on_match')
@@ -189,7 +189,7 @@ function! vimpeg#parser(options) abort
     endif
     return {'id' : self.id, 'pattern' : self.pat, 'ends' : ends, 'pos': ends[1], 'value' : self.value, 'is_matched': is_matched, 'errmsg': errmsg}
   endfunc
-  func peg.Expression.skip_white(input) dict  abort"{{{3
+  func peg.Expression.skip_white(input) dict  abort "{{{3
     if self.parent.optSkipWhite == 1
       if match(a:input.str, '\s\+', a:input.pos) == a:input.pos
         let a:input.pos = matchend(a:input.str, '\s\+', a:input.pos)
@@ -206,7 +206,7 @@ function! vimpeg#parser(options) abort
     return result
   endfunc
 
-  func peg.Expression.pmatch(input) dict  abort"{{{3
+  func peg.Expression.pmatch(input) dict  abort "{{{3
     let save = a:input.pos
     call self.skip_white(a:input)
 
@@ -229,7 +229,7 @@ function! vimpeg#parser(options) abort
   endfunc
 
   let peg.ExpressionSequence = copy(peg.Expression) "{{{2
-  func! peg.ExpressionSequence.new(seq, ...) dict  abort"{{{3
+  func! peg.ExpressionSequence.new(seq, ...) dict  abort "{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
     let e.seq = a:seq
     let e.sym = NextSym()
@@ -239,7 +239,7 @@ function! vimpeg#parser(options) abort
     return e
   endfunc
   " TODO: make it backtrack!
-  func! peg.ExpressionSequence.matcher(input) dict  abort"{{{3
+  func! peg.ExpressionSequence.matcher(input) dict  abort "{{{3
     let elements = []
     let is_matched = 1
     let errmsg = ''
@@ -273,7 +273,7 @@ function! vimpeg#parser(options) abort
   endfunc
 
   let peg.ExpressionOrderedChoice = copy(peg.Expression) "{{{2
-  func! peg.ExpressionOrderedChoice.new(choices, ...) dict  abort"{{{3
+  func! peg.ExpressionOrderedChoice.new(choices, ...) dict  abort "{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
     let e.choices = a:choices
     let e.sym = NextSym()
@@ -282,7 +282,7 @@ function! vimpeg#parser(options) abort
     endif
     return e
   endfunc
-  func! peg.ExpressionOrderedChoice.matcher(input) dict  abort"{{{3
+  func! peg.ExpressionOrderedChoice.matcher(input) dict  abort "{{{3
     let element = {}
     let is_matched = 0
     let errmsg = ''
@@ -313,7 +313,7 @@ function! vimpeg#parser(options) abort
   endfunc
 
   let peg.ExpressionMany = copy(peg.Expression) "{{{2
-  func! peg.ExpressionMany.new(exp, min, max, ...) dict  abort"{{{3
+  func! peg.ExpressionMany.new(exp, min, max, ...) dict  abort "{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
     let e.exp = copy(a:exp)
     let e.min = a:min
@@ -324,7 +324,7 @@ function! vimpeg#parser(options) abort
     endif
     return e
   endfunc
-  func! peg.ExpressionMany.matcher(input) dict  abort"{{{3
+  func! peg.ExpressionMany.matcher(input) dict  abort "{{{3
     let is_matched = 1
     let pos = a:input['pos']
     let cnt = 0
@@ -364,7 +364,7 @@ function! vimpeg#parser(options) abort
   endfunc
 
   let peg.ExpressionPredicate = copy(peg.Expression) "{{{2
-  func! peg.ExpressionPredicate.new(exp, type, ...) dict  abort"{{{3
+  func! peg.ExpressionPredicate.new(exp, type, ...) dict  abort "{{{3
     let e = self.Copy(a:0 ? a:000[0] : {})
     let e.exp = a:exp
     let e.type = a:type
@@ -374,7 +374,7 @@ function! vimpeg#parser(options) abort
     endif
     return e
   endfunc
-  func! peg.ExpressionPredicate.matcher(input) dict  abort"{{{3
+  func! peg.ExpressionPredicate.matcher(input) dict  abort "{{{3
     let is_matched = 0
     let pos = a:input.pos
     let e = copy(self.GetSym(self.exp))
@@ -397,7 +397,7 @@ function! vimpeg#parser(options) abort
     return {'id': self.id, 'elements': [element], 'pos': pos, 'type': self.type, 'value': self.value, 'is_matched': is_matched}
   endfunc
 
-  func peg.e(exp, ...) dict  abort"{{{2
+  func peg.e(exp, ...) dict  abort "{{{2
     return self.Expression.new(a:exp, a:0 ? a:000[0] : {})
   endfunc
   func peg.and(seq, ...) dict abort
