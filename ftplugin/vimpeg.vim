@@ -36,7 +36,7 @@ setlocal fo-=t fo+=croql
 "endif
 
 " A little help to speed typing the mallet.
-if get(g:, 'vimpeg_align_mallet', 1) && exists('g:tabular_loaded')
+if get(g:, 'vimpeg_align_mallet', 1) && exists(':Tabular')
   silent! ino <silent><buffer><expr> :
         \ getline('.')[:col('.')] =~ '^\s*\h\w*\s*[^:]*$'
         \ && get(g:, 'vimpeg_align_mallet', 1)
@@ -44,9 +44,30 @@ if get(g:, 'vimpeg_align_mallet', 1) && exists('g:tabular_loaded')
         \   : ':'
 endif
 
+if !exists('*s:test')
+  function! s:test() range
+    let result = vimpeg#peg#quick_test(getline(a:firstline, a:lastline))
+    for key in keys(result)
+      echo key . ': ' . string(result[key])
+    endfor
+  endfunction
+endif
+
+if !exists(':VimPEGTest')
+  command! -nargs=0 -range -buffer VimPEGTest <line1>;<line2>call s:test()
+endif
+
 if !exists(':VimPEG')
   command! -nargs=* -range=% -bang -bar -buffer VimPEG
         \ <line1>,<line2>call vimpeg#peg#writefile(<bang>0, [<f-args>])
+endif
+
+if empty(maparg('<Plug>VimPEGTest'))
+  noremap <silent><Plug>VimPEGTest :VimPEGTest<CR>
+endif
+if !hasmapto('<Plug>VimPEGTest', 'nv')
+  silent! nmap <buffer><unique><leader><leader> <Plug>VimPEGTest
+  silent! xmap <buffer><unique><leader><leader> <Plug>VimPEGTest
 endif
 
 " Set 'comments'.

@@ -46,7 +46,7 @@ function! vimpeg#peg#definition(elems) abort "{{{
   let expression = expression =~ '^''' ? 's:p.and(['.expression.']' : expression[:-2]
   let callback = len(a:elems[3]) > 0 ? a:elems[3][0] : ''
   "echom string(s:parser_options)
-  let namespace = get(s:parser_options, 'namespace', '')
+  let namespace = exists('s:parser_options') ? get(s:parser_options, 'namespace', '') : ''
   let callback = substitute(callback, '^#', namespace.'#', '')
   " wasn't checking for   ^'#   and would have deleted callback either way
   "let callback = (callback =~ '^#' ?
@@ -349,9 +349,7 @@ function! vimpeg#peg#writefile(bang, args) range abort "{{{
     return -1      "TODO: What should we really return here?
   else
     let root_element = get(s:parser_options, 'root_element', s:root_element)
-    let namespace = fnamemodify(source_path, ':p:r')
-    let namespace = substitute(namespace, '^.*[/\\]autoload[/\\]', '', '')
-    let namespace = join(split(namespace, '[/\\]'), '#')
+    let namespace = s:get_namespace(parser_path)
     let parser_name = get(s:parser_options, 'parser_name', fnamemodify(source_path, ':p:t:r'))
     let parser_name = parser_name =~ '#' ? parser_name : namespace . '#' . parser_name
     let content = [
@@ -385,6 +383,25 @@ function! vimpeg#peg#writefile(bang, args) range abort "{{{
     echohl None
     return result
   endif
+endfunction "}}}
+function! vimpeg#peg#quick_test(lines) abort "{{{
+  if &filetype !=? 'vimpeg'
+    echoerr 'This is not a vimpeg grammar file.'
+  endif
+  let linenr = search('^\s*\.parser_name\s*=')
+  if linenr == -1
+    echoerr '"parser_name" option not found.'
+    return
+  endif
+  let str = join(map(copy(a:lines), 'substitute(v:val, "^; ", "", "")'), "\<NL>")
+  let Parser_func = function(s:get_namespace(expand('%')) . '#parse')
+  return call(Parser_func, [str])
+endfunction "}}}
+function! s:get_namespace(path) "{{{
+  let namespace = fnamemodify(a:path, ':p:r')
+  let namespace = substitute(namespace, '^.*[/\\]autoload[/\\]', '', '')
+  let namespace = join(split(namespace, '[/\\]'), '#')
+  return namespace
 endfunction "}}}
 " }}}
 

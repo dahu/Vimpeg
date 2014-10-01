@@ -19,3 +19,4 @@ Todo
  8. Parse vimpeg files as a whole instead of line by line.
  9. Optionally embed vimpeg lib into parser. maybe?
 10. Do something useful with the debug option.
+11  Documentation.
