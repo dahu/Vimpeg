@@ -36,7 +36,18 @@ setlocal fo-=t fo+=croql
 "endif
 
 " A little help to speed typing the mallet.
-silent! ino <unique><buffer><expr> : getline('.') =~ '\m^\s*\h\w*\s*[^:]*$' ? '::= ' : ':'
+if get(g:, 'vimpeg_align_mallet', 1) && exists('g:tabular_loaded')
+  silent! ino <silent><buffer><expr> :
+        \ getline('.')[:col('.')] =~ '^\s*\h\w*\s*[^:]*$'
+        \ && get(g:, 'vimpeg_align_mallet', 1)
+        \   ? "::= " . "\<C-O>:Tabularize/^[^:]*\\zs::=\<CR>\<C-O>f=\<Del>= "
+        \   : ':'
+endif
+
+if !exists(':VimPEG')
+  command! -nargs=* -range=% -bang -bar -buffer VimPEG
+        \ <line1>,<line2>call vimpeg#peg#writefile(<bang>0, [<f-args>])
+endif
 
 " Set 'comments'.
 "setlocal comments&
@@ -45,4 +56,3 @@ let &cpo = s:save_cpo
 unlet s:save_cpo
 
 " vim: et sw=2
-

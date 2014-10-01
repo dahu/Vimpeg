@@ -13,15 +13,13 @@ endif
 let g:loaded_vimpeg = 1
 
 let g:vimpeg_version = '0.2'
-
+finish
 " Allow use of line continuation.
 let s:save_cpo = &cpo
 set cpo&vim
 
-if !exists(':VimPEG')
-  command -nargs=* -range=% -bang -bar VimPEG
-        \ <line1>,<line2>call vimpeg#peg#writefile(<bang>0, [<f-args>])
-endif
+" TODO: what should we do with this file besides using it to set vimpeg's
+" version?
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
