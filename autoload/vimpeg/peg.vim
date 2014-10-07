@@ -303,7 +303,7 @@ function! vimpeg#peg#parse(lines) abort "{{{
       echohl ErrorMsg
       echom "Parse Failed on line " . lnum . ": " . line
       echom res.errmsg
-      echohl None
+      echohl NONE
       return []
     else
       call add(result, res.value)
@@ -324,7 +324,7 @@ function! vimpeg#peg#writefile(bang, args) range abort "{{{
   if glob(parser_path) != '' && !a:bang
     echohl ErrorMsg
     echom 'The file "'.parser_path.'" already exists, add ! to overwrite it.'
-    echohl None
+    echohl NONE
     exec 'so '.parser_path
     return 0
   endif
@@ -345,7 +345,7 @@ function! vimpeg#peg#writefile(bang, args) range abort "{{{
   if peg_commands == []
     echohl ErrorMsg
     echom "Parse Failed!"
-    echohl None
+    echohl NONE
     return -1      "TODO: What should we really return here?
   else
     let root_element = get(s:parser_options, 'root_element', s:root_element)
@@ -365,8 +365,14 @@ function! vimpeg#peg#writefile(bang, args) range abort "{{{
           \ peg_commands +
           \ ['',
           \ 'let g:'.parser_name.' = s:p.GetSym('''.root_element.''')',
-          \ 'function! '.namespace.'#parse(in)',
-          \ '  return g:'.parser_name.'.match(a:in)',
+          \ 'function! '.namespace.'#parse(input)',
+          \ '  if type(a:input) != type('''')',
+          \ '    echohl ErrorMsg',
+          \ '    echom ''VimPEG: Input must be a string.''',
+          \ '    echohl NONE',
+          \ '    return []',
+          \ '  endif',
+          \ '  return g:'.parser_name.'.match(a:input)',
           \ 'endfunction',
           \ 'function! '.namespace.'#parser()',
           \ '  return deepcopy(g:'.parser_name.')',
@@ -376,11 +382,11 @@ function! vimpeg#peg#writefile(bang, args) range abort "{{{
     let result =  writefile(content, parser_path) + 1
     echohl WarningMsg
     echom 'The parser was built into "'.parser_path.'".'
-    echohl None
+    echohl NONE
     exec 'so '.parser_path
     echohl WarningMsg
     echom 'The parser was loaded.'
-    echohl None
+    echohl NONE
     return result
   endif
 endfunction "}}}

@@ -53,13 +53,13 @@ if !exists('*s:test')
   endfunction
 endif
 
-if !exists(':VimPEGTest')
-  command! -nargs=0 -range -buffer VimPEGTest <line1>;<line2>call s:test()
-endif
-
 if !exists(':VimPEG')
   command! -nargs=* -range=% -bang -bar -buffer VimPEG
         \ <line1>,<line2>call vimpeg#peg#writefile(<bang>0, [<f-args>])
+endif
+
+if !exists(':VimPEGTest')
+  command! -nargs=0 -range -buffer VimPEGTest <line1>;<line2>call s:test()
 endif
 
 if empty(maparg('<Plug>VimPEGTest'))

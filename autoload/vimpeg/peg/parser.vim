@@ -1,4 +1,4 @@
-" Parser compiled on Wed Oct  1 12:55:53 2014,
+" Parser compiled on Mon Oct  6 21:39:19 2014,
 " with VimPEG v0.2 and VimPEG Compiler v0.1
 " from "parser.vimpeg"
 " with the following grammar:
@@ -170,8 +170,14 @@ call s:p.and([s:p.maybe_one('comment'), s:p.e('\n\|$')],
       \{'id': 'eol', 'on_match': 'vimpeg#peg#eol'})
 
 let g:vimpeg#peg#parser#parser = s:p.GetSym('line')
-function! vimpeg#peg#parser#parse(in)
-  return g:vimpeg#peg#parser#parser.match(a:in)
+function! vimpeg#peg#parser#parse(input)
+  if type(a:input) != type('')
+    echohl ErrorMsg
+    echom 'VimPEG: Input must be a string.'
+    echohl NONE
+    return []
+  endif
+  return g:vimpeg#peg#parser#parser.match(a:input)
 endfunction
 function! vimpeg#peg#parser#parser()
   return deepcopy(g:vimpeg#peg#parser#parser)
