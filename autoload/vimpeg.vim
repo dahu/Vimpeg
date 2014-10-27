@@ -38,7 +38,7 @@ let g:loaded_vimpeg_lib = 1
 let vimpeg_save_cpo = &cpo
 set cpo&vim
 
-" memoisation
+" memoization
 let s:sym = 0
 function! NextSym()
   let s:sym += 1
@@ -49,13 +49,14 @@ function! vimpeg#parser(options) abort
   let peg = {}
   let peg.optSkipWhite = get(a:options, 'skip_white', 0)
   let peg.optIgnoreCase = get(a:options, 'ignore_case', 0)
+  let peg.optMemoization = get(a:options, 'memoization', 1)
   let peg.Symbols = {}
-  let peg.Cache = {}                " memoisation
+  let peg.Cache = {}                " memoization
   let peg.Expression = {}
   let peg.Expression.parent = peg
   let peg.Expression.value = []
   let peg.Expression.id = ''
-  let peg.Expression.sym = 0  " memoisation
+  let peg.Expression.sym = 0  " memoization
   "TODO: Make 'debug' useful. :h :debug maybe?
   let peg.Expression.debug = get(a:options, 'debug', 0)
   let peg.Expression.verbose = get(a:options, 'verbose', 0)
@@ -97,7 +98,7 @@ function! vimpeg#parser(options) abort
     endif
   endfunc
 
-  " memoisation
+  " memoization
   func peg.MkSym(pos, sym) dict
     return a:pos . '_' . a:sym
   endfunc
@@ -199,7 +200,7 @@ function! vimpeg#parser(options) abort
   func peg.Expression.match(input) dict "{{{3
     let self.value = []
     let save_ic = &ic
-    call self.CacheClear()  " memoisation
+    call self.CacheClear()  " memoization
     let &ignorecase = self.parent.optIgnoreCase ? 1 : 0
     let result = self.pmatch({'str': a:input, 'pos': 0})
     let &ignorecase = save_ic
@@ -210,10 +211,10 @@ function! vimpeg#parser(options) abort
     let save = a:input.pos
     call self.skip_white(a:input)
 
-    " memoisation
+    " memoization
     let pos = a:input.pos
     let c = self.CacheGet(pos, self.sym)
-    if type(c) == type({})
+    if self.parent.optMemoization && type(c) == type({})
       let m = c
     else
       let m = self.matcher(a:input)
