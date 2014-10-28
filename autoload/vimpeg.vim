@@ -57,8 +57,8 @@ function! vimpeg#parser(options) abort
   let peg.Expression.value = []
   let peg.Expression.id = ''
   let peg.Expression.sym = 0  " memoization
-  "TODO: Make 'debug' useful. :h :debug maybe?
   let peg.Expression.debug = get(a:options, 'debug', 0)
+  let peg.Expression.debug_ids = split(get(a:options, 'debug_ids', ''), '\s*,\s*')
   let peg.Expression.verbose = get(a:options, 'verbose', 0)
 
   func peg.callback(func, args) dict abort
@@ -136,7 +136,7 @@ function! vimpeg#parser(options) abort
   endfunc
 
   func peg.Expression.SetOptions(options) dict  abort "{{{2
-    for o in ['id', 'debug', 'verbose', 'on_match']
+    for o in ['id', 'debug', 'debug_ids', 'verbose', 'on_match']
       if has_key(a:options, o)
         exe "let self." . o . " = a:options['" . o . "']"
       endif
@@ -206,8 +206,22 @@ function! vimpeg#parser(options) abort
     let &ignorecase = save_ic
     return result
   endfunc
+  func peg.Expression.breakadd() dict "{{{3
+    " Add a breakpoint if the id is in the debug_ids option.
+    if self.debug && index(self.debug_ids, get(self, 'id', '')) > -1
+      let fname = matchstr(expand('<sfile>'), '\w\+\ze\.\.\w\+$')
+      echom 'Adding breakpoint for "'.self.id.'" in function {' . fname . '}'
+      exec 'breakadd func 3 {' . fname . '}'
+      return 1
+    endif
+    return 0
+  endfunc
 
   func peg.Expression.pmatch(input) dict  abort "{{{3
+    if self.breakadd()
+      " Remove the breakpoint until it's needed again.
+      exec 'breakdel func 3 {'.matchstr(expand('<sfile>'), '\w\+$').'}'
+    endif
     let save = a:input.pos
     call self.skip_white(a:input)
 
