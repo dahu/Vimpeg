@@ -261,27 +261,31 @@ function! vimpeg#parser(options) abort
     let commited = 0
     " TODO: should this be -1 or 0?
     let pos = -1
-    for s in self.seq
-      let e = copy(self.GetSym(s))
-      let e.elements = []
-      if e.type == 'commit'
-        let commited += 1
-      endif
-      let m = e.pmatch(a:input)
-      " BEA: Expermineting with adding even possible fails for errmsg...
-      call add(elements, m)
-      if !m['is_matched']
-        let is_matched = 0
-        if commited
-          throw 'Commited'
+    try
+      for s in self.seq
+        let e = copy(self.GetSym(s))
+        let e.elements = []
+        if get(e, 'type', '') == 'commit'
+          let commited += 1
         endif
-        break
-      endif
-      " TODO: do I need to delete these elements if not matched?
-      "call add(elements, m)
-      unlet s
-      unlet m
-    endfor
+        let m = e.pmatch(a:input)
+        " BEA: Expermineting with adding even possible fails for errmsg...
+        call add(elements, m)
+        if !m['is_matched']
+          let is_matched = 0
+          if commited
+            echo 'Failed to match Committed Sequence: '
+            echo elements
+            throw 'Committed'
+          endif
+          break
+        endif
+        " TODO: do I need to delete these elements if not matched?
+        "call add(elements, m)
+        unlet s
+        unlet m
+      endfor
+    endtry
     if is_matched
       let pos = elements[-1]['pos']
       let self.value = map(copy(elements), 'v:val["value"]')
@@ -407,10 +411,11 @@ function! vimpeg#parser(options) abort
       let is_matched = element['is_matched']
     elseif self.type == 'not_has' " NOT predicate
       let is_matched = !element['is_matched']
-    elseif self.type == 'commit' " COMMIT predicate
-      if !element.is_matched
-        throw 'Commited'
-      endif
+      " elseif self.type == 'commit' " COMMIT predicate
+      "   if !element.is_matched
+      "     throw 'Committed'
+      "   endif
+    else
       let is_matched = element['is_matched']
     endif
     if is_matched

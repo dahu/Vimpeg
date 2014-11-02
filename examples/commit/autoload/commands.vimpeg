@@ -1,0 +1,14 @@
+; Simple Commit Example
+; Vimpeg Example Grammar
+; Barry Arthur, 2014 11 2
+
+.skip_white = true
+.namespace = 'commands_parser'
+.parser_name = 'commands#parser'
+.root_element = 'commands'
+
+commands ::= show | set
+set      ::= 'set' (sym (('=' . (val | sym)) | '!')?)? -> #set
+show     ::= 'show' sym?                     -> #show
+sym      ::= '\h\w*'
+val      ::= '\d\+'
