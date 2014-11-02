@@ -36,7 +36,7 @@ syn match   vimpegDefLimit      /::=/ containedin=vimpegDefinition contained dis
 syn match   vimpegDefLimit      /|/ containedin=vimpegDefinition contained display
 syn match   vimpegDefLimit      /->/ containedin=vimpegDefCallback contained display
 syn match   vimpegDefCallback   /->\s*[[:alnum:]_:.#]*\ze\%(\s*;.*\)\?/ containedin=vimpegDefinition display
-syn match   vimpegDefSpecial    /[!&]/ containedin=vimpegDefinition contained display
+syn match   vimpegDefSpecial    /[!&.]/ containedin=vimpegDefinition contained display
 syn match   vimpegDefQuantifier /[?*+]/ containedin=vimpegDefinition contained display
 syn match   vimpegDelimiter     /[()]/ contained containedin=vimpegDefinition display
 

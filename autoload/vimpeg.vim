@@ -258,16 +258,23 @@ function! vimpeg#parser(options) abort
     let elements = []
     let is_matched = 1
     let errmsg = ''
+    let commited = 0
     " TODO: should this be -1 or 0?
     let pos = -1
     for s in self.seq
       let e = copy(self.GetSym(s))
       let e.elements = []
+      if e.type == 'commit'
+        let commited += 1
+      endif
       let m = e.pmatch(a:input)
       " BEA: Expermineting with adding even possible fails for errmsg...
       call add(elements, m)
       if !m['is_matched']
         let is_matched = 0
+        if commited
+          throw 'Commited'
+        endif
         break
       endif
       " TODO: do I need to delete these elements if not matched?
@@ -400,6 +407,11 @@ function! vimpeg#parser(options) abort
       let is_matched = element['is_matched']
     elseif self.type == 'not_has' " NOT predicate
       let is_matched = !element['is_matched']
+    elseif self.type == 'commit' " COMMIT predicate
+      if !element.is_matched
+        throw 'Commited'
+      endif
+      let is_matched = element['is_matched']
     endif
     if is_matched
       " TODO: Unsure if it is wise to have this in a predicate... may make for
@@ -438,6 +450,9 @@ function! vimpeg#parser(options) abort
   endfunc
   func peg.not_has(exp, ...) dict abort
     return self.ExpressionPredicate.new(a:exp, 'not_has', a:0 ? a:000[0] : {})
+  endfunc
+  func peg.commit(exp, ...) dict abort
+    return self.ExpressionPredicate.new(a:exp, 'commit', a:0 ? a:000[0] : {})
   endfunc
   return peg
 endfunction

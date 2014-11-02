@@ -1,4 +1,4 @@
-" Parser compiled on Mon Oct  6 21:39:19 2014,
+" Parser compiled on Sun Nov  2 00:13:04 2014,
 " with VimPEG v0.2 and VimPEG Compiler v0.1
 " from "parser.vimpeg"
 " with the following grammar:
@@ -50,7 +50,7 @@
 " definition       ::= identifier mallet expression callback ? eol -> #definition
 " expression       ::= sequence ( or sequence ) * -> #expression
 " sequence         ::= prefix * -> #sequence
-" prefix           ::= ( and | not ) ? suffix -> #prefix
+" prefix           ::= ( and | not | commit ) ? suffix -> #prefix
 " suffix           ::= primary ( question | star | plus ) ? -> #suffix
 " primary          ::= identifier ! mallet | open expression close | regex -> #primary
 " callback         ::= right_arrow '\%([a-zA-Z0-9_:.#]*\w\+\)\?' -> #callback
@@ -78,6 +78,7 @@
 " or               ::= '|' space -> #first
 " and              ::= '&' space -> #first
 " not              ::= '!' space -> #first
+" commit           ::= '\.' space -> #first
 " question         ::= '?' space -> #first
 " star             ::= '\*' space -> #first
 " plus             ::= '+' space -> #first
@@ -96,7 +97,7 @@ call s:p.and(['sequence', s:p.maybe_many(s:p.and(['or', 'sequence']))],
       \{'id': 'expression', 'on_match': 'vimpeg#peg#expression'})
 call s:p.maybe_many('prefix',
       \{'id': 'sequence', 'on_match': 'vimpeg#peg#sequence'})
-call s:p.and([s:p.maybe_one(s:p.or(['and', 'not'])), 'suffix'],
+call s:p.and([s:p.maybe_one(s:p.or(['and', 'not', 'commit'])), 'suffix'],
       \{'id': 'prefix', 'on_match': 'vimpeg#peg#prefix'})
 call s:p.and(['primary', s:p.maybe_one(s:p.or(['question', 'star', 'plus']))],
       \{'id': 'suffix', 'on_match': 'vimpeg#peg#suffix'})
@@ -152,6 +153,8 @@ call s:p.and([s:p.e('&'), 'space'],
       \{'id': 'and', 'on_match': 'vimpeg#peg#first'})
 call s:p.and([s:p.e('!'), 'space'],
       \{'id': 'not', 'on_match': 'vimpeg#peg#first'})
+call s:p.and([s:p.e('\.'), 'space'],
+      \{'id': 'commit', 'on_match': 'vimpeg#peg#first'})
 call s:p.and([s:p.e('?'), 'space'],
       \{'id': 'question', 'on_match': 'vimpeg#peg#first'})
 call s:p.and([s:p.e('\*'), 'space'],

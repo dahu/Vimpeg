@@ -85,7 +85,13 @@ function! vimpeg#peg#prefix(elems) abort "{{{
   let suffix = a:elems[1]
   if len(a:elems[0]) > 0
     let prefix = a:elems[0][0]
-    let result = 's:p.'.(prefix == '!' ? 'not_' : '').'has('.suffix.')'
+    if prefix == '!'
+      let result = 's:p.not_has('.suffix.')'
+    elseif prefix == '&'
+      let result = 's:p.has('.suffix.')'
+    elseif prefix == '.'
+      let result = 's:p.commit('.suffix.')'
+    endif
   else
     let result = suffix
   endif

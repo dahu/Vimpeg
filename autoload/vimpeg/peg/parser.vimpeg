@@ -45,7 +45,7 @@ line             ::= ( option | definition ) ? eol -> #line
 definition       ::= identifier mallet expression callback ? eol -> #definition
 expression       ::= sequence ( or sequence ) * -> #expression
 sequence         ::= prefix * -> #sequence
-prefix           ::= ( and | not ) ? suffix -> #prefix
+prefix           ::= ( and | not | commit ) ? suffix -> #prefix
 suffix           ::= primary ( question | star | plus ) ? -> #suffix
 primary          ::= identifier ! mallet | open expression close | regex -> #primary
 callback         ::= right_arrow '\%([a-zA-Z0-9_:.#]*\w\+\)\?' -> #callback
@@ -73,6 +73,7 @@ equal            ::= '=' space -> #first
 or               ::= '|' space -> #first
 and              ::= '&' space -> #first
 not              ::= '!' space -> #first
+commit           ::= '\.' space -> #first
 question         ::= '?' space -> #first
 star             ::= '\*' space -> #first
 plus             ::= '+' space -> #first
