@@ -202,8 +202,13 @@ function! vimpeg#parser(options) abort
     let save_ic = &ic
     call self.CacheClear()  " memoization
     let &ignorecase = self.parent.optIgnoreCase ? 1 : 0
-    let result = self.pmatch({'str': a:input, 'pos': 0})
-    let &ignorecase = save_ic
+    try
+      let result = self.pmatch({'str': a:input, 'pos': 0})
+    catch /^Failed to match Committed Sequence/
+      let result = self.parent.commit_result
+    finally
+      let &ignorecase = save_ic
+    endtry
     return result
   endfunc
   func peg.Expression.breakadd() dict "{{{3
@@ -258,7 +263,7 @@ function! vimpeg#parser(options) abort
     let elements = []
     let is_matched = 1
     let errmsg = ''
-    let commited = 0
+    let committed = 0
     " TODO: should this be -1 or 0?
     let pos = -1
     try
@@ -266,17 +271,23 @@ function! vimpeg#parser(options) abort
         let e = copy(self.GetSym(s))
         let e.elements = []
         if get(e, 'type', '') == 'commit'
-          let commited += 1
+          let committed += 1
         endif
         let m = e.pmatch(a:input)
         " BEA: Expermineting with adding even possible fails for errmsg...
         call add(elements, m)
         if !m['is_matched']
           let is_matched = 0
-          if commited
-            echo 'Failed to match Committed Sequence: '
-            echo elements
-            throw 'Committed'
+          if committed
+            let errmsg = "Failed to match Committed Sequence at byte " . a:input.pos
+            if self.verbose
+              echohl ErrorMsg
+              echom errmsg
+              echohl None
+            endif
+            " XXX: Is this the best approach to bring the info upstairs?
+            let self.parent.commit_result = {'id': self.id, 'elements': elements, 'pos': pos, 'value': self.value, 'is_matched': is_matched, 'errmsg': errmsg}
+            throw errmsg
           endif
           break
         endif
@@ -407,15 +418,9 @@ function! vimpeg#parser(options) abort
     let e.elements = []
     let element = e.pmatch(a:input)
     let a:input.pos = pos
-    if self.type == 'has'         " AND predicate
-      let is_matched = element['is_matched']
-    elseif self.type == 'not_has' " NOT predicate
+    if self.type == 'not_has'         " NO predicate
       let is_matched = !element['is_matched']
-      " elseif self.type == 'commit' " COMMIT predicate
-      "   if !element.is_matched
-      "     throw 'Committed'
-      "   endif
-    else
+    else                              " AND and COMMIT predicates
       let is_matched = element['is_matched']
     endif
     if is_matched
