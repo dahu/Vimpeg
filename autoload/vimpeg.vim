@@ -37,6 +37,7 @@ let g:loaded_vimpeg_lib = 1
 " Allow use of line continuation.
 let vimpeg_save_cpo = &cpo
 set cpo&vim
+" Start VimPEG
 
 " memoization
 let s:sym = 0
@@ -441,6 +442,7 @@ function! vimpeg#parser(options) abort
   endfunc
   return peg
 endfunction
+" End VimPEG
 
 let &cpo = vimpeg_save_cpo
 " unlet vimpeeg_save_cpo

@@ -20,6 +20,8 @@ let vimpeg_peg_version = '0.1'
 let s:save_cpo = &cpo
 set cpo&vim
 
+let s:path = expand('<sfile>')
+
 " Callback functions {{{
 function! vimpeg#peg#line(elems) abort "{{{
   "echom 'Line: ' . string(a:elems)
@@ -349,21 +351,24 @@ function! vimpeg#peg#writefile(bang, args) range abort "{{{
     return -1      "TODO: What should we really return here?
   else
     let root_element = get(s:parser_options, 'root_element', s:root_element)
+    let embedded = get(s:parser_options, 'embedded', 0)
+    let vimpeg_name = embedded ? 's:vimpeg' : 'vimpeg#parser'
     let namespace = s:get_namespace(parser_path)
     let parser_name = get(s:parser_options, 'parser_name', fnamemodify(source_path, ':p:t:r'))
     let parser_name = parser_name =~ '#' ? parser_name : namespace . '#' . parser_name
-    let content = [
+    let header = [
           \ '" Parser compiled on '.strftime('%c').',',
           \ '" with VimPEG v'.g:vimpeg_version.' and VimPEG Compiler v'.g:vimpeg_peg_version.'',
           \ '" from "'.fnamemodify(source_path, ':p:t').'"',
           \ '" with the following grammar:',
           \ ''
-          \ ] +
-          \ peg_rules +
+          \ ]
+    let parser =
           \ ['',
-          \ 'let s:p = vimpeg#parser('. string(s:parser_options).')'] +
-          \ peg_commands +
-          \ ['',
+          \ 'let s:p = '.vimpeg_name.'('. string(s:parser_options).')'] +
+          \ peg_commands
+    let footer = [
+          \ '',
           \ 'let g:'.parser_name.' = s:p.GetSym('''.root_element.''')',
           \ 'function! '.namespace.'#parse(input)',
           \ '  if type(a:input) != type('''')',
@@ -378,7 +383,16 @@ function! vimpeg#peg#writefile(bang, args) range abort "{{{
           \ '  return deepcopy(g:'.parser_name.')',
           \ 'endfunction',
           \ ]
+    let content = []
+    call extend(content, header)
+    call extend(content, peg_rules)
+    if embedded
+      call extend(content, s:embed_vimpeg())
+    endif
+    call extend(content, parser)
+    call extend(content, footer)
 
+    echo string(content)
     let result =  writefile(content, parser_path) + 1
     echohl WarningMsg
     echom 'The parser was built into "'.parser_path.'".'
@@ -408,6 +422,17 @@ function! s:get_namespace(path) "{{{
   let namespace = substitute(namespace, '^.*[/\\]autoload[/\\]', '', '')
   let namespace = join(split(namespace, '[/\\]'), '#')
   return namespace
+endfunction "}}}
+function! s:embed_vimpeg() "{{{
+  let vimpeg_path = fnamemodify(s:path, ':p:h:h') . '/vimpeg.vim'
+  let lines = readfile(vimpeg_path)
+  let start_idx = index(lines, '" Start VimPEG')
+  let end_idx = index(lines, '" End VimPEG')
+  let lines = lines[start_idx : end_idx]
+  let idx = index(lines, 'function! vimpeg#parser(options) abort')
+  let lines[idx] = 'function! s:vimpeg(options) abort'
+  call insert(lines, '')
+  return lines
 endfunction "}}}
 " }}}
 
