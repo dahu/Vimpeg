@@ -7,7 +7,7 @@
 " Location:	ftplugin/%Plugin_File%
 
 " Only do this when not done yet for this buffer
-if exists("b:did_ftplugin")
+if exists('b:did_ftplugin')
   finish
 endif
 
@@ -19,7 +19,7 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 " Restore things when changing filetype.
-let b:undo_ftplugin = "sil! iunmap :| setl fo< com< ofu<"
+let b:undo_ftplugin = 'sil! iunmap :| setl fo< com< ofu<'
 
 " Configure the matchit plugin.
 let b:match_words = &matchpairs
@@ -40,7 +40,7 @@ if get(g:, 'vimpeg_align_mallet', 1) && exists(':Tabular')
   silent! ino <silent><buffer><expr> :
         \ getline('.')[:col('.')] =~ '^\s*\h\w*\s*[^:]*$'
         \ && get(g:, 'vimpeg_align_mallet', 1)
-        \   ? "::= " . "\<C-O>:Tabularize/^[^:]*\\zs::=\<CR>\<C-O>f=\<Del>= "
+        \   ? '::= ' . "\<C-O>:Tabularize/^[^:]*\\zs::=\<CR>\<C-O>f=\<Del>= "
         \   : ':'
 endif
 

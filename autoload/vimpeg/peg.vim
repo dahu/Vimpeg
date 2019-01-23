@@ -7,7 +7,7 @@
 " License:	Vim License (see :help license)
 " Location:	autoload/vimpeg/peg.vim
 
-if exists("g:loaded_vimpeg_peg")
+if exists('g:loaded_vimpeg_peg')
 "      \ || v:version < 700 || &compatible
   "finish
 endif
@@ -55,9 +55,9 @@ function! vimpeg#peg#definition(elems) abort "{{{
         "\         get(s:parser_options, 'namespace', '') :
         "\         '') .
         "\ callback
-  "echom "using callback=".callback." in namespace=".get(s:parser_options, 'namespace', 'none')
+  "echom 'using callback='.callback.' in namespace='.get(s:parser_options, 'namespace', 'none')
   let result = 'call '.expression.",\n      \\{'id': ".label.
-        \(callback != '' ? ", 'on_match': ".string(callback) : '')."})"
+        \(callback != '' ? ', "on_match": '.string(callback) : '').'})'
   "echom 'Definition: ' . string(result)
   return result
 endfunction "}}}
@@ -303,7 +303,7 @@ function! vimpeg#peg#parse(lines) abort "{{{
     let res = vimpeg#peg#parser#parse(line)
     if !res.is_matched
       echohl ErrorMsg
-      echom "Parse Failed on line " . lnum . ": " . line
+      echom 'Parse Failed on line ' . lnum . ': ' . line
       echom res.errmsg
       echohl NONE
       return []
@@ -346,7 +346,7 @@ function! vimpeg#peg#writefile(bang, args) range abort "{{{
   let peg_commands = vimpeg#peg#parse(lines)
   if peg_commands == []
     echohl ErrorMsg
-    echom "Parse Failed!"
+    echom 'Parse Failed!'
     echohl NONE
     return -1      "TODO: What should we really return here?
   else

@@ -28,7 +28,7 @@
 "   Functional PEG parser generator using programmatic API.
 "   Bundled with various examples.
 
-if exists("g:loaded_vimpeg_lib")
+if exists('g:loaded_vimpeg_lib')
 "      \ || v:version < 700 || &compatible
   "finish
 endif
@@ -59,16 +59,16 @@ endfunction
 
 function s:GetSym(id) dict abort
   let id = a:id
-  if type(id) == type("")
+  if type(id) == type('')
     if !has_key(self.Symbols, id)
-      echoerr "Error: GetSym() : Symbol '" . id . "' is undefined."
+      echoerr 'Error: GetSym() : Symbol "' . id . '" is undefined.'
     else
       return self.Symbols[id]
     endif
   elseif type(id) == type({})
     return id
   else
-    echoerr "Error: GetSym() : Unknown id type: " . type(id)
+    echoerr 'Error: GetSym() : Unknown id type: ' . type(id)
   endif
 endfunction
 
@@ -79,7 +79,7 @@ function s:AddSym(symbol) dict abort
     let self.Symbols[symbol['id']] = symbol
     return symbol
   else
-    echoerr "Error: AddSym() : Symbol '" . symbol['id'] . "' already defined."
+    echoerr 'Error: AddSym() : Symbol "' . symbol['id'] . '" already defined.'
   endif
 endfunction
 
@@ -123,7 +123,7 @@ endfunction
 function s:Expression_SetOptions(options) dict abort "{{{2
   for o in ['id', 'debug', 'debug_ids', 'verbose', 'on_match']
     if has_key(a:options, o)
-      exe "let self." . o . " = a:options['" . o . "']"
+      exe 'let self.' . o . ' = a:options[''' . o . ''']'
     endif
   endfor
 endfunction
@@ -151,13 +151,13 @@ function s:Expression_matcher(input) dict abort "{{{3
   let errmsg = ''
   let is_matched = 1
   let ends = [0,0]
-  "echo "peg.Expression: " . string(a:input) . ' ' . string(self.pat)
+  "echo 'peg.Expression: ' . string(a:input) . ' ' . string(self.pat)
   let ends[0] = match(a:input.str, '\m'.self.pat, a:input.pos)
   let ends[1] = matchend(a:input.str, '\m'.self.pat, a:input.pos)
   if ends[0] != a:input.pos
-    let errmsg = "Failed to match '".self.id."' /". self.pat . "/ at byte " . a:input.pos . " on '" . a:input.str[a:input.pos : a:input.pos + 30] . "'"
+    let errmsg = 'Failed to match "'.self.id.'" /'. self.pat . '/ at byte ' . a:input.pos . ' on "' . a:input.str[a:input.pos : a:input.pos + 30] . '"'
     if self.verbose == 2
-      "echom "peg.Expression: " . string(a:input) . ' ' . string(self.pat)
+      "echom 'peg.Expression: ' . string(a:input) . ' ' . string(self.pat)
       echohl WarningMsg
       echom errmsg
       echohl None
@@ -167,8 +167,8 @@ function s:Expression_matcher(input) dict abort "{{{3
   end
   if is_matched
     if self.verbose
-      "echom "peg.Expression: " . string(a:input) . ' ' . string(self.pat)
-      echom "Matched '".self.id."' /". self.pat . "/ at byte " . a:input.pos . " on '" . a:input.str[a:input.pos : a:input.pos + 30] . "'"
+      "echom 'peg.Expression: ' . string(a:input) . ' ' . string(self.pat)
+      echom 'Matched "'.self.id.'" /'. self.pat . '/ at byte ' . a:input.pos . ' on "' . a:input.str[a:input.pos : a:input.pos + 30] . '"'
     endif
     let self.value = strpart(a:input.str, ends[0], ends[1] - ends[0])
     if has_key(self, 'on_match')
@@ -272,7 +272,7 @@ function s:ExpressionSequence_matcher(input) dict abort "{{{3
       let self.value = self.parent.callback(self.on_match, self.value)
     endif
   else
-    let errmsg = "Failed to match Sequence at byte " . a:input.pos
+    let errmsg = 'Failed to match Sequence at byte ' . a:input.pos
   endif
   return {'id': self.id, 'elements': elements, 'pos': pos, 'value': self.value, 'is_matched': is_matched, 'errmsg': errmsg}
 endfunction
@@ -307,12 +307,12 @@ function s:ExpressionOrderedChoice_matcher(input) dict abort "{{{3
   endfor
   if is_matched
     let pos = element['pos']
-    let self.value = element["value"]
+    let self.value = element['value']
     if has_key(self, 'on_match')
       let self.value = self.parent.callback(self.on_match, self.value)
     endif
   else
-    let errmsg = "Failed to match Ordered Choice at byte " . a:input.pos
+    let errmsg = 'Failed to match Ordered Choice at byte ' . a:input.pos
   endif
   return {'id': self.id, 'elements': [element], 'pos': pos, 'value': self.value, 'is_matched': is_matched, 'errmsg': errmsg}
 endfunction
@@ -351,7 +351,7 @@ function s:ExpressionMany_matcher(input) dict abort "{{{3
     " TODO: this should be an error
     if self.verbose
       echohl ErrorMsg
-      echom "Failed to match enough repeated items. Needed " . self.min . " but only found " . cnt
+      echom 'Failed to match enough repeated items. Needed ' . self.min . ' but only found ' . cnt
       echohl None
     endif
     let is_matched = 0
@@ -394,7 +394,7 @@ function s:ExpressionPredicate_matcher(input) dict abort "{{{3
   if is_matched
     " TODO: Unsure if it is wise to have this in a predicate... may make for
     " interesting parsers...
-    let self.value = element["value"]
+    let self.value = element['value']
     if has_key(self, 'on_match')
       let self.value = self.parent.callback(self.on_match, self.value)
     endif
