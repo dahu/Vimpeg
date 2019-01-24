@@ -45,11 +45,11 @@ function! vimpeg#peg#definition(elems) abort "{{{
   let mallet = a:elems[1]
   let expression = a:elems[2]
   "echom expression
-  let expression = expression =~ '^''' ? 's:p.and(['.expression.']' : expression[:-2]
+  let expression = expression =~# '\m^''' ? 's:p.and(['.expression.']' : expression[:-2]
   let callback = len(a:elems[3]) > 0 ? a:elems[3][0] : ''
   "echom string(s:parser_options)
   let namespace = exists('s:parser_options') ? get(s:parser_options, 'namespace', '') : ''
-  let callback = substitute(callback, '^#', namespace.'#', '')
+  let callback = substitute(callback, '\m\C^#', namespace.'#', '')
   " wasn't checking for   ^'#   and would have deleted callback either way
   "let callback = (callback =~ '^#' ?
         "\         get(s:parser_options, 'namespace', '') :
@@ -57,7 +57,7 @@ function! vimpeg#peg#definition(elems) abort "{{{
         "\ callback
   "echom 'using callback='.callback.' in namespace='.get(s:parser_options, 'namespace', 'none')
   let result = 'call '.expression.",\n      \\{'id': ".label.
-        \(callback != '' ? ', "on_match": '.string(callback) : '').'})'
+        \(!empty(callback) ? ', "on_match": '.string(callback) : '').'})'
   "echom 'Definition: ' . string(result)
   return result
 endfunction "}}}
@@ -87,7 +87,7 @@ function! vimpeg#peg#prefix(elems) abort "{{{
   let suffix = a:elems[1]
   if len(a:elems[0]) > 0
     let prefix = a:elems[0][0]
-    let result = 's:p.'.(prefix == '!' ? 'not_' : '').'has('.suffix.')'
+    let result = 's:p.'.(prefix ==# '!' ? 'not_' : '').'has('.suffix.')'
   else
     let result = suffix
   endif
@@ -99,7 +99,7 @@ function! vimpeg#peg#suffix(elems) abort "{{{
   let primary = a:elems[0]
   if len(a:elems[1]) > 0
     let suffix = a:elems[1][0]
-    let result = 's:p.'.(suffix == '*' ? 'maybe_many' : (suffix == '+' ? 'many' : 'maybe_one')) . '('.primary.')'
+    let result = 's:p.'.(suffix ==# '*' ? 'maybe_many' : (suffix ==# '+' ? 'many' : 'maybe_one')) . '('.primary.')'
   else
     let result = primary
   endif
@@ -290,14 +290,14 @@ endfunction "}}}
 function! vimpeg#peg#parse(lines) abort "{{{
   let s:setting_options = 1
   " Get rid of comment marks, if any.
-  "let result = map(copy(a:lines), 'substitute(v:val, ''^"\s*'', "", "")')
+  "let result = map(copy(a:lines), 'substitute(v:val, ''\m\C^"\s*'', "", "")')
   " Parse the lines
   "let result = map(filter(copy(a:lines), 'v:val != ""'), 'g:vimpeg#peg#parser.match(v:val).value')
   let lnum = 0
   let result = []
   for line in a:lines
     let lnum += 1
-    if line =~ '^\s*$'
+    if line =~# '\m^\s*$'
       continue
     endif
     let res = vimpeg#peg#parser#parse(line)
@@ -312,7 +312,7 @@ function! vimpeg#peg#parse(lines) abort "{{{
     endif
   endfor
   " Split at newlines
-  let result = eval(substitute(string(result), '\n', "', '", 'g'))
+  let result = eval(substitute(string(result), '\m\C\n', "', '", 'g'))
   " Remove empty items
   "echom string(result)
   call filter(result, 'type(v:val) == type("") && !empty(v:val)')
@@ -323,7 +323,7 @@ function! vimpeg#peg#writefile(bang, args) range abort "{{{
   let parser_path = len(a:args) > 0 ? a:args[0] : expand('%:p:r:h').'.vim'
 
   " See if file exists
-  if glob(parser_path) != '' && !a:bang
+  if !empty(glob(parser_path)) && !a:bang
     echohl ErrorMsg
     echom 'The file "'.parser_path.'" already exists, add ! to overwrite it.'
     echohl NONE
@@ -342,7 +342,7 @@ function! vimpeg#peg#writefile(bang, args) range abort "{{{
   endif
 
   " Add comment marks if needed
-  let peg_rules = map(copy(lines), 'v:val =~ ''^\s*"\s*'' ? v:val : ''" ''.v:val')
+  let peg_rules = map(copy(lines), 'v:val =~# ''\m^\s*"\s*'' ? v:val : ''" ''.v:val')
   let peg_commands = vimpeg#peg#parse(lines)
   if peg_commands == []
     echohl ErrorMsg
@@ -355,7 +355,7 @@ function! vimpeg#peg#writefile(bang, args) range abort "{{{
     let vimpeg_name = embedded ? 's:vimpeg' : 'vimpeg#parser'
     let namespace = s:get_namespace(parser_path)
     let parser_name = get(s:parser_options, 'parser_name', fnamemodify(source_path, ':p:t:r'))
-    let parser_name = parser_name =~ '#' ? parser_name : namespace . '#' . parser_name
+    let parser_name = parser_name =~# '\m#' ? parser_name : namespace . '#' . parser_name
     let header = [
           \ '" Parser compiled on '.strftime('%c').',',
           \ '" with VimPEG v'.g:vimpeg_version.' and VimPEG Compiler v'.g:vimpeg_peg_version.'',
@@ -392,7 +392,7 @@ function! vimpeg#peg#writefile(bang, args) range abort "{{{
     call extend(content, parser)
     call extend(content, footer)
 
-    echo string(content)
+    "echo string(content)
     let result =  writefile(content, parser_path) + 1
     echohl WarningMsg
     echom 'The parser was built into "'.parser_path.'".'
@@ -408,18 +408,18 @@ function! vimpeg#peg#quick_test(lines) abort "{{{
   if &filetype !=? 'vimpeg'
     echoerr 'This is not a vimpeg grammar file.'
   endif
-  let linenr = search('^\s*\.parser_name\s*=')
+  let linenr = search('\m\C^\s*\.parser_name\s*=')
   if linenr == -1
     echoerr '"parser_name" option not found.'
     return
   endif
-  let str = join(map(copy(a:lines), 'substitute(v:val, "^; ", "", "")'), "\<NL>")
+  let str = join(map(copy(a:lines), 'substitute(v:val, "\\m\\C^; ", "", "")'), "\<NL>")
   let Parser_func = function(s:get_namespace(expand('%')) . '#parse')
   return call(Parser_func, [str])
 endfunction "}}}
 function! s:get_namespace(path) "{{{
   let namespace = fnamemodify(a:path, ':p:r')
-  let namespace = substitute(namespace, '^.*[/\\]autoload[/\\]', '', '')
+  let namespace = substitute(namespace, '\m\C^.*[/\\]autoload[/\\]', '', '')
   let namespace = join(split(namespace, '[/\\]'), '#')
   return namespace
 endfunction "}}}

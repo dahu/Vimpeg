@@ -38,7 +38,7 @@ setlocal fo-=t fo+=croql
 " A little help to speed typing the mallet.
 if get(g:, 'vimpeg_align_mallet', 1) && exists(':Tabular')
   silent! ino <silent><buffer><expr> :
-        \ getline('.')[:col('.')] =~ '^\s*\h\w*\s*[^:]*$'
+        \ getline('.')[:col('.')] =~# '\m^\s*\h\w*\s*[^:]*$'
         \ && get(g:, 'vimpeg_align_mallet', 1)
         \   ? '::= ' . "\<C-O>:Tabularize/^[^:]*\\zs::=\<CR>\<C-O>f=\<Del>= "
         \   : ':'

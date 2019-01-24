@@ -47,9 +47,9 @@ function! NextSym()
 endfunction
 
 function s:callback(func, args) dict abort
-  if (type(a:func) == type('')) && (a:func =~ '\.')
-    let func = (a:func =~ '^\a:' ? '' : 'g:').a:func
-    let dict = substitute(func, '^\(.*\)\..\+', '\1', '')
+  if (type(a:func) == type('')) && (a:func =~# '\m\.')
+    let func = (a:func =~# '\m^\a:' ? '' : 'g:').a:func
+    let dict = substitute(func, '\m\C^\(.*\)\..\+', '\1', '')
     let cmd = 'call('.func.', [a:args], '.dict.')'
     exec 'return '.cmd
   else
@@ -123,7 +123,7 @@ endfunction
 function s:Expression_SetOptions(options) dict abort "{{{2
   for o in ['id', 'debug', 'debug_ids', 'verbose', 'on_match']
     if has_key(a:options, o)
-      exe 'let self.' . o . ' = a:options[''' . o . ''']'
+      let self[o] = a:options[o]
     endif
   endfor
 endfunction
@@ -141,7 +141,7 @@ function s:Expression_new(pat, ...) dict abort "{{{3
   let e = self.Copy(a:0 ? a:000[0] : {})
   let e.pat = a:pat
   let e.sym = NextSym()
-  if e.id != ''
+  if !empty(e.id)
     call self.AddSym(e)
   endif
   return e
@@ -180,15 +180,15 @@ endfunction
 
 function s:Expression_skip_white(input) dict abort "{{{3
   if self.parent.optSkipWhite == 1
-    if match(a:input.str, '\s\+', a:input.pos) == a:input.pos
-      let a:input.pos = matchend(a:input.str, '\s\+', a:input.pos)
+    if match(a:input.str, '\m\s\+', a:input.pos) == a:input.pos
+      let a:input.pos = matchend(a:input.str, '\m\C\s\+', a:input.pos)
     endif
   endif
 endfunction
 
 function s:Expression_match(input) dict "{{{3
   let self.value = []
-  let save_ic = &ic
+  let save_ic = &ignorecase
   call self.CacheClear()  " memoization
   let &ignorecase = self.parent.optIgnoreCase ? 1 : 0
   let result = self.pmatch({'str': a:input, 'pos': 0})
@@ -199,7 +199,7 @@ endfunction
 function s:Expression_breakadd() dict "{{{3
   " Add a breakpoint if the id is in the debug_ids option.
   if self.debug && index(self.debug_ids, get(self, 'id', '')) > -1
-    let fname = matchstr(expand('<sfile>'), '\w\+\ze\.\.\w\+$')
+    let fname = matchstr(expand('<sfile>'), '\m\C\w\+\ze\.\.\w\+$')
     echom 'Adding breakpoint for "'.self.id.'" in function {' . fname . '}'
     exec 'breakadd func 3 {' . fname . '}'
     return 1
@@ -210,7 +210,7 @@ endfunction
 function s:Expression_pmatch(input) dict abort "{{{3
   if self.breakadd()
     " Remove the breakpoint until it's needed again.
-    exec 'breakdel func 3 {'.matchstr(expand('<sfile>'), '\w\+$').'}'
+    exec 'breakdel func 3 {'.matchstr(expand('<sfile>'), '\m\C\w\+$').'}'
   endif
   let save = a:input.pos
   call self.skip_white(a:input)
@@ -237,7 +237,7 @@ function s:ExpressionSequence_new(seq, ...) dict abort "{{{3
   let e = self.Copy(a:0 ? a:000[0] : {})
   let e.seq = a:seq
   let e.sym = NextSym()
-  if e.id != ''
+  if !empty(e.id)
     call self.AddSym(e)
   endif
   return e
@@ -281,7 +281,7 @@ function s:ExpressionOrderedChoice_new(choices, ...) dict abort "{{{3
   let e = self.Copy(a:0 ? a:000[0] : {})
   let e.choices = a:choices
   let e.sym = NextSym()
-  if e.id != ''
+  if !empty(e.id)
     call self.AddSym(e)
   endif
   return e
@@ -323,7 +323,7 @@ function s:ExpressionMany_new(exp, min, max, ...) dict abort "{{{3
   let e.min = a:min
   let e.max = a:max
   let e.sym = NextSym()
-  if e.id != ''
+  if !empty(e.id)
     call self.AddSym(e)
   endif
   return e
@@ -373,7 +373,7 @@ function s:ExpressionPredicate_new(exp, type, ...) dict abort "{{{3
   let e.exp = a:exp
   let e.type = a:type
   let e.sym = NextSym()
-  if e.id != ''
+  if !empty(e.id)
     call self.AddSym(e)
   endif
   return e
@@ -386,9 +386,9 @@ function s:ExpressionPredicate_matcher(input) dict abort "{{{3
   let e.elements = []
   let element = e.pmatch(a:input)
   let a:input.pos = pos
-  if self.type == 'has'         " AND predicate
+  if self.type ==# 'has'         " AND predicate
     let is_matched = element['is_matched']
-  elseif self.type == 'not_has' " NOT predicate
+  elseif self.type ==# 'not_has' " NOT predicate
     let is_matched = !element['is_matched']
   endif
   if is_matched
@@ -451,7 +451,7 @@ function! vimpeg#parser(options) abort
   let peg.Expression.id = ''
   let peg.Expression.sym = 0  " memoization
   let peg.Expression.debug = get(a:options, 'debug', 0)
-  let peg.Expression.debug_ids = split(get(a:options, 'debug_ids', ''), '\s*,\s*')
+  let peg.Expression.debug_ids = split(get(a:options, 'debug_ids', ''), '\m\C\s*,\s*')
   let peg.Expression.verbose = get(a:options, 'verbose', 0)
 
   let peg.callback = function('s:callback')
