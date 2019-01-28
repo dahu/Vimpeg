@@ -35,23 +35,29 @@ endif
 let g:loaded_vimpeg_lib = 1
 
 " Allow use of line continuation.
-let vimpeg_save_cpo = &cpo
+let s:vimpeg_save_cpo = &cpo
 set cpo&vim
 " Start VimPEG
 
 " memoization
 let s:sym = 0
-function! NextSym()
+function! s:NextSym()
   let s:sym += 1
   return s:sym
 endfunction
 
+function s:SID()
+  return matchstr(expand('<sfile>'), '<SNR>\d\+_\zeSID$')
+endfun
+
 function s:callback(func, args) dict abort
   if (type(a:func) == type('')) && (a:func =~# '\m\.')
-    let func = (a:func =~# '\m^\a:' ? '' : 'g:').a:func
-    let dict = substitute(func, '\m\C^\(.*\)\..\+', '\1', '')
-    let cmd = 'call('.func.', [a:args], '.dict.')'
-    exec 'return '.cmd
+    if a:func !~# '\m\a:'
+      let func = 'g:' . a:func
+    endif
+    let dict_name = matchstr(func, '\m\C^.*\ze\..\+')
+    let dict = eval(dict_name)
+    return call(func, [a:args], dict)
   else
     return call(a:func, [a:args])
   endif
@@ -140,7 +146,7 @@ endfunction
 function s:Expression_new(pat, ...) dict abort "{{{3
   let e = self.Copy(a:0 ? a:000[0] : {})
   let e.pat = a:pat
-  let e.sym = NextSym()
+  let e.sym = s:NextSym()
   if !empty(e.id)
     call self.AddSym(e)
   endif
@@ -196,21 +202,12 @@ function s:Expression_match(input) dict "{{{3
   return result
 endfunction
 
-function s:Expression_breakadd() dict "{{{3
-  " Add a breakpoint if the id is in the debug_ids option.
-  if self.debug && index(self.debug_ids, get(self, 'id', '')) > -1
-    let fname = matchstr(expand('<sfile>'), '\m\C\w\+\ze\.\.\w\+$')
-    echom 'Adding breakpoint for "'.self.id.'" in function {' . fname . '}'
-    exec 'breakadd func 3 {' . fname . '}'
-    return 1
-  endif
-  return 0
-endfunction
-
 function s:Expression_pmatch(input) dict abort "{{{3
-  if self.breakadd()
+  if self.debug && index(self.debug_ids, get(self, 'id', '')) > -1
+    echom 'Adding breakpoint for "'.self.id.'"'
+    exec printf('breakadd func 5 %sExpression_pmatch', s:SID())
     " Remove the breakpoint until it's needed again.
-    exec 'breakdel func 3 {'.matchstr(expand('<sfile>'), '\m\C\w\+$').'}'
+    exec printf('breakdel func 5 %sExpression_pmatch', s:SID())
   endif
   let save = a:input.pos
   call self.skip_white(a:input)
@@ -236,7 +233,7 @@ endfunction
 function s:ExpressionSequence_new(seq, ...) dict abort "{{{3
   let e = self.Copy(a:0 ? a:000[0] : {})
   let e.seq = a:seq
-  let e.sym = NextSym()
+  let e.sym = s:NextSym()
   if !empty(e.id)
     call self.AddSym(e)
   endif
@@ -280,7 +277,7 @@ endfunction
 function s:ExpressionOrderedChoice_new(choices, ...) dict abort "{{{3
   let e = self.Copy(a:0 ? a:000[0] : {})
   let e.choices = a:choices
-  let e.sym = NextSym()
+  let e.sym = s:NextSym()
   if !empty(e.id)
     call self.AddSym(e)
   endif
@@ -322,7 +319,7 @@ function s:ExpressionMany_new(exp, min, max, ...) dict abort "{{{3
   let e.exp = copy(a:exp)
   let e.min = a:min
   let e.max = a:max
-  let e.sym = NextSym()
+  let e.sym = s:NextSym()
   if !empty(e.id)
     call self.AddSym(e)
   endif
@@ -372,7 +369,7 @@ function s:ExpressionPredicate_new(exp, type, ...) dict abort "{{{3
   let e = self.Copy(a:0 ? a:000[0] : {})
   let e.exp = a:exp
   let e.type = a:type
-  let e.sym = NextSym()
+  let e.sym = s:NextSym()
   if !empty(e.id)
     call self.AddSym(e)
   endif
@@ -478,7 +475,6 @@ function! vimpeg#parser(options) abort
   let peg.Expression.matcher = function('s:Expression_matcher')
   let peg.Expression.skip_white = function('s:Expression_skip_white')
   let peg.Expression.match = function('s:Expression_match')
-  let peg.Expression.breakadd = function('s:Expression_breakadd')
   let peg.Expression.pmatch = function('s:Expression_pmatch')
 
   let peg.ExpressionSequence = copy(peg.Expression) "{{{2
@@ -511,7 +507,7 @@ function! vimpeg#parser(options) abort
 endfunction
 " End VimPEG
 
-let &cpo = vimpeg_save_cpo
-" unlet vimpeeg_save_cpo
+let &cpo = s:vimpeg_save_cpo
+" unlet s:vimpeg_save_cpo
 
 " vim: et sw=2 fdm=marker
