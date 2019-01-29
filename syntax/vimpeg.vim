@@ -15,11 +15,6 @@ endif
 let s:save_cpo = &cpo
 set cpo&vim
 
-" Name of syntax item under the cursor
-"nore <buffer><leader>n :echo synIDattr(synID(line("."), col("."), 1), "name")<CR>
-" Syntax stack of item under the cursor
-"nore <buffer><leader>s :for id in synstack(line("."), col("."))<bar>echo synIDattr(id, "name")<bar>endfor<CR>
-
 syn region  vimpegOptRegion     start=/^\s*\./ end=/^\ze\s*\h/ contains=vimpegOption,vimpegComment
 syn match   vimpegOption        /^\s*\..*/ contains=vimpegOptLabel,vimpegAssign,vimpegOptValue,vimpegComment,vimpegOptBoolean contained display
 syn match   vimpegOptName       /\h\w*/ containedin=vimpegOptLabel contained display
@@ -29,7 +24,7 @@ syn match   vimpegOptEqual      /=/ containedin=vimpegOption display
 
 syn region  vimpegDefRegion     start=/^\ze\s*\h/ skip=/./ end=/\%$/ contains=vimpegError,vimpegDefinition,vimpegComment
 syn match   vimpegError         /\S/ contained containedin=vimpegDefinition display
-syn region  vimpegDefinition    start=/^\s*\ze\h/ end=/$/ contains=vimpegDefLabel,vimpegDefMallet,vimpegDefTag,vimpegComment contained display oneline
+syn region  vimpegDefinition    start=/^\s*\ze\h/ skip=/\\\n/ end=/$/ contains=vimpegDefLabel,vimpegDefMallet,vimpegDefTag,vimpegComment contained
 syn match   vimpegDefTag        /\h\w*/ contained display
 syn match   vimpegDefLabel      /^\s*\h\w*/ contained display
 syn match   vimpegDefLimit      /::=/ containedin=vimpegDefinition contained display
@@ -39,6 +34,8 @@ syn match   vimpegDefCallback   /->\s*[[:alnum:]_:.#]*\ze\%(\s*;.*\)\?/ containe
 syn match   vimpegDefSpecial    /[!&]/ containedin=vimpegDefinition contained display
 syn match   vimpegDefQuantifier /[?*+]/ containedin=vimpegDefinition contained display
 syn match   vimpegDelimiter     /[()]/ contained containedin=vimpegDefinition display
+
+syn match   vimpegContinued     /\\$/ contained containedin=vimpegDefinition display
 
 syn region  vimpegString        matchgroup=vimpegDelimiter start=/'/ skip=/''/ end=/'/ containedin=vimpegOption,vimpegDefinition display oneline
 syn region  vimpegString        matchgroup=vimpegDelimiter start=/"/ skip=/\\\\\|\\"/ end=/"/ containedin=vimpegOption,vimpegDefinition display oneline
@@ -56,13 +53,14 @@ hi link vimpegDefLimit		Conditional
 hi link vimpegDefQuantifier	Conditional
 hi link vimpegDefCallback	Function
 hi link vimpegDefSpecial	Special
+hi link vimpegContinued 	Special
 hi link vimpegDefGroup		Type
 hi link vimpegString		String
 hi link vimpegComment		Comment
 hi link vimpegError		Error
 hi link vimpegTodo		Todo
 
-let b:current_syntax = "vimpeg"
+let b:current_syntax = 'vimpeg'
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
