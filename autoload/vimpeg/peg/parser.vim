@@ -1,4 +1,4 @@
-" Parser compiled on Mon Oct  6 21:39:19 2014,
+" Parser compiled on Tue Jan 29 00:24:06 2019,
 " with VimPEG v0.2 and VimPEG Compiler v0.1
 " from "parser.vimpeg"
 " with the following grammar:
@@ -41,12 +41,13 @@
 " .skip_white   = false
 " .namespace    = 'vimpeg#peg'
 " .parser_name  = 'parser'
-" .root_element = 'line'
+" .root_element = 'grammar'
 " .ignore_case  = false
 " .debug        = false
 " .verbose      = 0
 " 
-" line             ::= ( option | definition ) ? eol -> #line
+" grammar          ::= options ? definitions eof -> #grammar
+" definitions      ::= ( definition | eol ) + -> #definitions
 " definition       ::= identifier mallet expression callback ? eol -> #definition
 " expression       ::= sequence ( or sequence ) * -> #expression
 " sequence         ::= prefix * -> #sequence
@@ -54,9 +55,10 @@
 " suffix           ::= primary ( question | star | plus ) ? -> #suffix
 " primary          ::= identifier ! mallet | open expression close | regex -> #primary
 " callback         ::= right_arrow '\%([a-zA-Z0-9_:.#]*\w\+\)\?' -> #callback
+" options          ::= ( option | eol ) + -> #options
 " option           ::= dot option_name equal option_value eol -> #option
 " option_name      ::= identifier
-" option_value     ::= squoted_string | squoted_string | number | boolean
+" option_value     ::= dquoted_string | squoted_string | number | boolean
 " identifier       ::= '\h\w*' space -> #identifier
 " regex            ::= dquoted_string | squoted_string -> #regex
 " dquoted_string   ::= dquote ( double_backslash | escaped_dquote | '[^"]' ) * dquote space -> #dquoted_string
@@ -85,11 +87,14 @@
 " open             ::= '(' space -> #first
 " dot              ::= '\.'
 " space            ::= '\%(\s\|\\\n\)*'
-" eol              ::= comment ? '\n\|$' -> #eol
+" eol              ::= comment ? '\n' -> #eol
+" eof              ::= '$'
 
-let s:p = vimpeg#parser({'root_element': 'line', 'skip_white': 0, 'ignore_case': 0, 'verbose': 0, 'parser_name': 'parser', 'namespace': 'vimpeg#peg', 'debug': 0})
-call s:p.and([s:p.maybe_one(s:p.or(['option', 'definition'])), 'eol'],
-      \{'id': 'line', 'on_match': 'vimpeg#peg#line'})
+let s:p = vimpeg#parser({'root_element': 'grammar', 'skip_white': 0, 'ignore_case': 0, 'verbose': 0, 'parser_name': 'parser', 'namespace': 'vimpeg#peg', 'debug': 0})
+call s:p.and([s:p.maybe_one('options'), 'definitions', 'eof'],
+      \{'id': 'grammar', 'on_match': 'vimpeg#peg#grammar'})
+call s:p.many(s:p.or(['definition', 'eol']),
+      \{'id': 'definitions', 'on_match': 'vimpeg#peg#definitions'})
 call s:p.and(['identifier', 'mallet', 'expression', s:p.maybe_one('callback'), 'eol'],
       \{'id': 'definition', 'on_match': 'vimpeg#peg#definition'})
 call s:p.and(['sequence', s:p.maybe_many(s:p.and(['or', 'sequence']))],
@@ -104,11 +109,13 @@ call s:p.or([s:p.and(['identifier', s:p.not_has('mallet')]), s:p.and(['open', 'e
       \{'id': 'primary', 'on_match': 'vimpeg#peg#primary'})
 call s:p.and(['right_arrow', s:p.e('\%([a-zA-Z0-9_:.#]*\w\+\)\?')],
       \{'id': 'callback', 'on_match': 'vimpeg#peg#callback'})
+call s:p.many(s:p.or(['option', 'eol']),
+      \{'id': 'options', 'on_match': 'vimpeg#peg#options'})
 call s:p.and(['dot', 'option_name', 'equal', 'option_value', 'eol'],
       \{'id': 'option', 'on_match': 'vimpeg#peg#option'})
 call s:p.and(['identifier'],
       \{'id': 'option_name'})
-call s:p.or(['squoted_string', 'squoted_string', 'number', 'boolean'],
+call s:p.or(['dquoted_string', 'squoted_string', 'number', 'boolean'],
       \{'id': 'option_value'})
 call s:p.and([s:p.e('\h\w*'), 'space'],
       \{'id': 'identifier', 'on_match': 'vimpeg#peg#identifier'})
@@ -166,10 +173,12 @@ call s:p.e('\.',
       \{'id': 'dot'})
 call s:p.e('\%(\s\|\\\n\)*',
       \{'id': 'space'})
-call s:p.and([s:p.maybe_one('comment'), s:p.e('\n\|$')],
+call s:p.and([s:p.maybe_one('comment'), s:p.e('\n')],
       \{'id': 'eol', 'on_match': 'vimpeg#peg#eol'})
+call s:p.e('$',
+      \{'id': 'eof'})
 
-let g:vimpeg#peg#parser#parser = s:p.GetSym('line')
+let g:vimpeg#peg#parser#parser = s:p.GetSym('grammar')
 function! vimpeg#peg#parser#parse(input)
   if type(a:input) != type('')
     echohl ErrorMsg

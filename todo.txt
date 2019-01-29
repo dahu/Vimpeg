@@ -16,7 +16,7 @@ Todo
     -- better yet, get all of the existing examples and re-design them
     into this new workflow
  7. [done] We need to usr_41 the vimpeg lib itself
- 8. Parse vimpeg files as a whole instead of line by line.
- 9. Optionally embed vimpeg lib into parser. maybe?
+ 8. [done] Parse vimpeg files as a whole instead of line by line.
+ 9. [done] Optionally embed vimpeg lib into parser. maybe?
 10. [in progress] Do something useful with the debug option.
 11  Documentation.

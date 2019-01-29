@@ -8,7 +8,7 @@
 " Location:	autoload/vimpeg/peg.vim
 
 if exists('g:loaded_vimpeg_peg')
-"      \ || v:version < 700 || &compatible
+  "    \ || v:version < 700 || &compatible
   "finish
 endif
 let g:loaded_vimpeg_peg = 1
@@ -23,16 +23,27 @@ set cpo&vim
 let s:path = expand('<sfile>')
 
 " Callback functions {{{
-function! vimpeg#peg#line(elems) abort "{{{
-  "echom 'Line: ' . string(a:elems)
+function! vimpeg#peg#grammar(elems) abort "{{{
+  "echom printf('grammar: a:elems: %s', a:elems[1])
   "if len(a:elems[0]) > 0
-    "let result = a:elems[0][0]
+  "  let result = a:elems[0][0]
   "else
-    "let result = ''
+  "  let result = ''
   "endif
   "echom 'Line: ' . string(result)
   "return result
-  return get(a:elems[0], 0, '')
+  return a:elems[1]
+endfunction "}}}
+
+function! vimpeg#peg#definitions(elems) abort "{{{
+  "echom printf('definitions: a:elems: %s', a:elems)
+  let result = []
+  for i in a:elems
+    "echom printf('i: %s', i)
+    call extend(result, i)
+  endfor
+  "echom printf('definitions: result: %s', result)
+  return result
 endfunction "}}}
 
 function! vimpeg#peg#definition(elems) abort "{{{
@@ -49,16 +60,15 @@ function! vimpeg#peg#definition(elems) abort "{{{
   let expression = expression =~# '\m^''' ? 's:p.and(['.expression.']' : expression[:-2]
   let callback = len(a:elems[3]) > 0 ? a:elems[3][0] : ''
   "echom string(s:parser_options)
-  let namespace = exists('s:parser_options') ? get(s:parser_options, 'namespace', '') : ''
-  let callback = substitute(callback, '\m\C^#', namespace.'#', '')
-  " wasn't checking for   ^'#   and would have deleted callback either way
-  "let callback = (callback =~ '^#' ?
-        "\         get(s:parser_options, 'namespace', '') :
-        "\         '') .
-        "\ callback
-  "echom 'using callback='.callback.' in namespace='.get(s:parser_options, 'namespace', 'none')
-  let result = 'call '.expression.",\n      \\{'id': ".label.
-        \(!empty(callback) ? ', "on_match": '.string(callback) : '').'})'
+  let line1 = printf('call %s,', expression)
+  if !empty(callback)
+    let namespace = exists('s:parser_options') ? get(s:parser_options, 'namespace', '') : ''
+    let callback = substitute(callback, '\m\C^#', namespace.'#', '')
+    "echom 'using callback='.callback.' in namespace='.get(s:parser_options, 'namespace', 'none')
+    let callback = printf(', ''on_match'': ''%s''', callback)
+  endif
+  let line2 = printf('      \{''id'': %s%s})', label, callback)
+  let result = [line1, line2]
   "echom 'Definition: ' . string(result)
   return result
 endfunction "}}}
@@ -131,6 +141,11 @@ function! vimpeg#peg#callback(elems) abort "{{{
   let callback = a:elems[1]
   "echom 'Callback: ' . string(callback)
   return callback
+endfunction "}}}
+
+function! vimpeg#peg#options(elems) abort "{{{
+  "echom printf('options: a:elems: %s', a:elems)
+  return ''
 endfunction "}}}
 
 function! vimpeg#peg#option(elems) abort "{{{
@@ -326,32 +341,13 @@ endfunction "}}}
 " Public interface {{{
 function! vimpeg#peg#parse(lines) abort "{{{
   let s:setting_options = 1
-  " Get rid of comment marks, if any.
-  "let result = map(copy(a:lines), 'substitute(v:val, ''\m\C^"\s*'', "", "")')
   " Parse the lines
-  "let result = map(filter(copy(a:lines), 'v:val != ""'), 'g:vimpeg#peg#parser.match(v:val).value')
-  let lnum = 0
   let result = []
-  for line in a:lines
-    let lnum += 1
-    if line =~# '\m^\s*$'
-      continue
-    endif
-    let res = vimpeg#peg#parser#parse(line)
-    if !res.is_matched
-      echohl ErrorMsg
-      echom 'Parse Failed on line ' . lnum . ': ' . line
-      echom res.errmsg
-      echohl NONE
-      return []
-    else
-      "TODO get a list directly instead of splitting the line
-      call extend(result, split(res.value, '\n'))
-    endif
-  endfor
+  let grammar = join(a:lines, "\n") . "\n"
+  let result = vimpeg#peg#parser#parse(grammar)
   " Remove empty items
   "echom string(result)
-  call filter(result, 'type(v:val) == type("") && !empty(v:val)')
+  "call filter(result, 'type(v:val) == type("") && !empty(v:val)')
   "echom string(result)
   return result
 endfunction "}}}
@@ -373,7 +369,8 @@ function! vimpeg#peg#writefile(bang, args) range abort "{{{
   let s:parser_options = {}
   "unlet! let s:root_element
   if source_path == expand('%')
-    let lines = getline(a:firstline, a:lastline)
+    "let lines = getline(a:firstline, a:lastline)
+    let lines = getline(1, '$')
   else
     let lines = readfile(source_path)
   endif
@@ -381,61 +378,61 @@ function! vimpeg#peg#writefile(bang, args) range abort "{{{
   " Add comment marks if needed
   let peg_rules = map(copy(lines), 'v:val =~# ''\m^\s*"\s*'' ? v:val : ''" ''.v:val')
   let peg_commands = vimpeg#peg#parse(lines)
-  if peg_commands == []
+  "echom peg_commands
+  if empty(peg_commands)
     echohl ErrorMsg
     echom 'Parse Failed!'
     echohl NONE
     return -1      "TODO: What should we really return here?
-  else
-    let root_element = get(s:parser_options, 'root_element', s:root_element)
-    let embedded = get(s:parser_options, 'embedded', 0)
-    let vimpeg_name = embedded ? 's:vimpeg' : 'vimpeg#parser'
-    let namespace = s:get_namespace(parser_path)
-    let parser_name = get(s:parser_options, 'parser_name', fnamemodify(source_path, ':p:t:r'))
-    let parser_name = parser_name =~# '\m#' ? parser_name : namespace . '#' . parser_name
-    let header = [
-          \ '" Parser compiled on '.strftime('%c').',',
-          \ '" with VimPEG v'.g:vimpeg_version.' and VimPEG Compiler v'.g:vimpeg_peg_version.'',
-          \ '" from "'.fnamemodify(source_path, ':p:t').'"',
-          \ '" with the following grammar:',
-          \ ''
-          \ ]
-    let parser =
-          \ ['',
-          \ 'let s:p = '.vimpeg_name.'('. string(s:parser_options).')'] +
-          \ peg_commands
-    let footer = [
-          \ '',
-          \ 'let g:'.parser_name.' = s:p.GetSym('''.root_element.''')',
-          \ 'function! '.namespace.'#parse(input)',
-          \ '  if type(a:input) != type('''')',
-          \ '    echohl ErrorMsg',
-          \ '    echom ''VimPEG: Input must be a string.''',
-          \ '    echohl NONE',
-          \ '    return []',
-          \ '  endif',
-          \ '  return g:'.parser_name.'.match(a:input)',
-          \ 'endfunction',
-          \ 'function! '.namespace.'#parser()',
-          \ '  return deepcopy(g:'.parser_name.')',
-          \ 'endfunction',
-          \ ]
-    let content = []
-    call extend(content, header)
-    call extend(content, peg_rules)
-    if embedded
-      call extend(content, s:embed_vimpeg())
-    endif
-    call extend(content, parser)
-    call extend(content, footer)
-
-    "echo string(content)
-    let result =  writefile(content, parser_path) + 1
-    echom 'The parser was built into "'.parser_path.'".'
-    exec 'source ' . parser_path
-    echom 'The parser was loaded.'
-    return result
   endif
+  let root_element = get(s:parser_options, 'root_element', s:root_element)
+  let embedded = get(s:parser_options, 'embedded', 0)
+  let vimpeg_name = embedded ? 's:vimpeg' : 'vimpeg#parser'
+  let namespace = s:get_namespace(parser_path)
+  let parser_name = get(s:parser_options, 'parser_name', fnamemodify(source_path, ':p:t:r'))
+  let parser_name = parser_name =~# '\m#' ? parser_name : namespace . '#' . parser_name
+  let header = [
+        \ '" Parser compiled on '.strftime('%c').',',
+        \ '" with VimPEG v'.g:vimpeg_version.' and VimPEG Compiler v'.g:vimpeg_peg_version.'',
+        \ '" from "'.fnamemodify(source_path, ':p:t').'"',
+        \ '" with the following grammar:',
+        \ ''
+        \ ]
+  let parser =
+        \ ['',
+        \ 'let s:p = '.vimpeg_name.'('. string(s:parser_options).')']
+  call extend(parser, peg_commands.value)
+  let footer = [
+        \ '',
+        \ 'let g:'.parser_name.' = s:p.GetSym('''.root_element.''')',
+        \ 'function! '.namespace.'#parse(input)',
+        \ '  if type(a:input) != type('''')',
+        \ '    echohl ErrorMsg',
+        \ '    echom ''VimPEG: Input must be a string.''',
+        \ '    echohl NONE',
+        \ '    return []',
+        \ '  endif',
+        \ '  return g:'.parser_name.'.match(a:input)',
+        \ 'endfunction',
+        \ 'function! '.namespace.'#parser()',
+        \ '  return deepcopy(g:'.parser_name.')',
+        \ 'endfunction',
+        \ ]
+  let content = []
+  call extend(content, header)
+  call extend(content, peg_rules)
+  if embedded
+    call extend(content, s:embed_vimpeg())
+  endif
+  call extend(content, parser)
+  call extend(content, footer)
+
+  "echo string(content)
+  let result =  writefile(content, parser_path) + 1
+  echom 'The parser was built into "'.parser_path.'".'
+  exec 'source ' . parser_path
+  echom 'The parser was loaded.'
+  return result
 endfunction "}}}
 
 function! vimpeg#peg#quick_test(lines) abort "{{{
