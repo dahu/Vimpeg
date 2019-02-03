@@ -1,4 +1,4 @@
-" Parser compiled on Tue Jan 29 00:24:06 2019,
+" Parser compiled on Sun Feb  3 09:28:34 2019,
 " with VimPEG v0.2 and VimPEG Compiler v0.1
 " from "parser.vimpeg"
 " with the following grammar:
@@ -53,16 +53,25 @@
 " sequence         ::= prefix * -> #sequence
 " prefix           ::= ( and | not ) ? suffix -> #prefix
 " suffix           ::= primary ( question | star | plus ) ? -> #suffix
-" primary          ::= identifier ! mallet | open expression close | regex -> #primary
+" primary          ::= identifier ! mallet \
+"                    | open expression close \
+"                    | regex -> #primary
 " callback         ::= right_arrow '\%([a-zA-Z0-9_:.#]*\w\+\)\?' -> #callback
 " options          ::= ( option | eol ) + -> #options
 " option           ::= dot option_name equal option_value eol -> #option
 " option_name      ::= identifier
-" option_value     ::= dquoted_string | squoted_string | number | boolean
+" option_value     ::= dquoted_string \
+"                    | squoted_string \
+"                    | number \
+"                    | boolean
 " identifier       ::= '\h\w*' space -> #identifier
-" regex            ::= dquoted_string | squoted_string -> #regex
-" dquoted_string   ::= dquote ( double_backslash | escaped_dquote | '[^"]' ) * dquote space -> #dquoted_string
-" squoted_string   ::= squote ( "[^']" | double_squote ) * squote space -> #squoted_string
+" regex            ::= dquoted_string \
+"                    | squoted_string -> #regex
+" dquoted_string   ::= dquote ( double_backslash \
+"                    | escaped_dquote \
+"                    | '[^"]' ) * dquote space -> #dquoted_string
+" squoted_string   ::= squote ( "[^']" | double_squote ) * squote space \
+"                    -> #squoted_string
 " escaped_dquote   ::= backslash dquote
 " double_backslash ::= backslash backslash
 " backslash        ::= '\'
@@ -73,7 +82,8 @@
 " comment          ::= ';[^\n]*'
 " right_arrow      ::= '->' space -> #first
 " mallet           ::= '::=' space -> #first
-" boolean          ::= true | false
+" boolean          ::= true \
+"                    | false
 " true             ::= 'true\|on' space -> #true
 " false            ::= 'false\|off' space -> #false
 " equal            ::= '=' space -> #first

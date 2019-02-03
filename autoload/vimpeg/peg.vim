@@ -464,6 +464,8 @@ function! s:embed_vimpeg() "{{{
   let lines = lines[start_idx : end_idx]
   let idx = index(lines, 'function! vimpeg#parser(options) abort')
   let lines[idx] = 'function! s:vimpeg(options) abort'
+  let lines[0] = '" Embedded VimPEG {{{1"'
+  let lines[-1] = '" End of embedded VimPEG }}}1"'
   call insert(lines, '')
   return lines
 endfunction "}}}
