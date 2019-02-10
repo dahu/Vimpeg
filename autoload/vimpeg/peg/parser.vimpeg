@@ -48,7 +48,7 @@ expression       ::= sequence ( or sequence ) * -> #expression
 sequence         ::= prefix * -> #sequence
 prefix           ::= ( and | not ) ? suffix -> #prefix
 suffix           ::= primary ( question | star | plus ) ? -> #suffix
-primary          ::= identifier ! mallet \
+primary          ::= identifier ! mallet   \
                    | open expression close \
                    | regex -> #primary
 callback         ::= right_arrow '\%([a-zA-Z0-9_:.#]*\w\+\)\?' -> #callback
@@ -57,13 +57,13 @@ option           ::= dot option_name equal option_value eol -> #option
 option_name      ::= identifier
 option_value     ::= dquoted_string \
                    | squoted_string \
-                   | number \
+                   | number         \
                    | boolean
 identifier       ::= '\h\w*' space -> #identifier
 regex            ::= dquoted_string \
                    | squoted_string -> #regex
 dquoted_string   ::= dquote ( double_backslash \
-                   | escaped_dquote \
+                   | escaped_dquote            \
                    | '[^"]' ) * dquote space -> #dquoted_string
 squoted_string   ::= squote ( "[^']" | double_squote ) * squote space \
                    -> #squoted_string
