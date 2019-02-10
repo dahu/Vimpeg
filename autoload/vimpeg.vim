@@ -507,6 +507,105 @@ function! vimpeg#parser(options) abort
 endfunction
 " End VimPEG
 
+function! vimpeg#format()
+  "echom printf('v:lnum: %s', v:lnum)
+  "echom printf('v:count: %s', v:count)
+  "echom printf('v:char: %s', v:char)
+  let first = v:lnum
+  let last = v:lnum + v:count - 1
+  if get(g:, 'vimpeg_format_align_mallet', 1)
+    let lines = getline(1, '$')
+    let mallets = filter(copy(lines), 'v:val =~# ''\m^\w\+\s*::=''')
+    call map(mallets, 'substitute(v:val, ''\m\C \+'', " ", "g")')
+    call map(mallets, 'strchars(matchstr(v:val, ''\m\C^[^=]\+\S\ze\s*\::=''))')
+    "echom printf('mallets substrings: %s', mallets)
+    let mallet_length = max(mallets)
+    "echom printf('max: %s', mallet_length)
+    let fmtstr = printf('%%-%ss::= ', mallet_length + 1)
+    call setpos("'[", [0, first, 1, 0])
+    call setpos("']", [0, last, 1, 0])
+    "'[;']g/^/echom printf('%3s: %s', line('.'), getline('.'))
+    silent! '[;']s/\m\C^\(\w\+\)\s*::=\s*/\=printf(fmtstr, submatch(1))/
+  else
+    silent! '[;']s/\m\C^\(\w\+\)\s*::=\s*/\1 ::= /
+  endif
+  call setpos("'[", [0, first, 1, 0])
+  call setpos("']", [0, last, 1, 0])
+  silent! normal! '[=']
+  call setpos("'[", [0, first, 1, 0])
+  call setpos("']", [0, last, 1, 0])
+  silent! '[;']g/\m\C^\w.*\\$/call s:align_bs()
+endfunction
+
+function! s:align_bs()
+  "echom 'align_backslash'
+  let first = line('.')
+  let last = first
+  let line = getline(last)
+  let limit = line('$')
+  "echom printf('%3s: %s', last, line)
+  while last < limit
+        \ && line !~# '\m^\s*;'
+        \ && line =~# '\m\\$'
+    let last += 1
+    let line = getline(last)
+    "echom printf('%3s: %s', last, line)
+  endwhile
+  let lines = getline(first, last)
+  call map(lines, 'strchars(matchstr(v:val, ''\m\C^.*\S\ze\s*\\$''))')
+  "echom printf('lines mapped: %s', lines)
+  let line_length = max(lines) + 1
+  let fmtstr = printf('%%-%ss\', line_length)
+  "echom printf('fmtstr: %s', string(fmtstr))
+  "echom printf('  0: '.fmtstr, 'X')
+  call setpos("'[", [0, first, 1, 0])
+  call setpos("']", [0, last, 1, 0])
+  '[;']s/\m\C^\(.\{}\S\)\s*\\$/\=printf(fmtstr, submatch(1))/
+  "call setpos("'[", [0, first, 1, 0])
+  "call setpos("']", [0, last, 1, 0])
+  '[;']g/^/echom printf('%3s: %s', line('.'), getline('.'))
+endfunction
+
+function vimpeg#get_indent()
+  if v:lnum == 1
+    " first line
+    return 0
+  endif
+  let lnum = v:lnum
+  let line = getline(lnum)
+  let lines = []
+  let equal_string = ''
+  let i = -1
+  while lnum > 0
+        \ && line !~# '\m\C^\s*;'
+        \ && (lnum == v:lnum || line =~# '\m\C\%(^\|[^\\]\)\%(\\\\\)*\\$')
+    call insert(lines, line)
+    if line =~# '\m\C='
+      " a posible = of an assignment or option, let's save its info
+      let equal_string = matchstr(line, '\m\C^[^=]\{}\%(::\ze=\|[^:]=\s*\|$\)')
+      let equal_index = i
+    endif
+    let lnum -= 1
+    let line = getline(lnum)
+    let i -= 1
+  endwhile
+  if empty(lines) || len(lines) == 1
+    " not a continued line
+    return 0
+  endif
+  if equal_index < -2
+    " the first equal sign in not on the previous line, copy the indentation
+    return indent(v:lnum - 1)
+  endif
+  if equal_index == -2
+    " the first equal sign is in the previous line, align with it
+    return strdisplaywidth(equal_string)
+  endif
+  let indent_label = 'vimpeg_indent_continued'
+  let multiplier = get(b:, indent_label, get(g:, indent_label, 3))
+  return shiftwidth() * multiplier
+endfunction
+
 let &cpo = s:vimpeg_save_cpo
 " unlet s:vimpeg_save_cpo
 

@@ -19,7 +19,7 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 " Restore things when changing filetype.
-let b:undo_ftplugin = 'sil! iunmap :| setl fo< com< ofu<'
+let b:undo_ftplugin = 'sil! iunmap :| setl fo< com< cms< ofu< fex<'
 
 " Configure the matchit plugin.
 let b:match_words = &matchpairs
@@ -29,6 +29,8 @@ let b:match_skip = 's:comment\|string\|character'
 " Set 'formatoptions' to break comment lines but not other lines,
 " and insert the comment leader when hitting <CR> or using "o".
 setlocal fo-=t fo+=croql
+
+setlocal formatexpr=vimpeg#format()
 
 " Set completion with CTRL-X CTRL-O to autoloaded function.
 "if exists('&ofu')
@@ -53,10 +55,8 @@ if !exists('*s:test')
   endfunction
 endif
 
-if !exists(':VimPEG')
-  command! -nargs=* -range=% -bang -bar -buffer VimPEG
-        \ <line1>,<line2>call vimpeg#peg#writefile(<bang>0, [<f-args>])
-endif
+command! -nargs=* -range=% -bang -bar -buffer VimPEG
+      \ <line1>,<line2>call vimpeg#peg#writefile(<bang>0, [<f-args>])
 
 if !exists(':VimPEGTest')
   command! -nargs=0 -range -buffer VimPEGTest <line1>;<line2>call s:test()
@@ -71,7 +71,8 @@ if !hasmapto('<Plug>VimPEGTest', 'nv')
 endif
 
 " Set 'comments'.
-"setlocal comments&
+setlocal comments=:;
+setlocal commentstring=;%s
 
 let &cpo = s:save_cpo
 unlet s:save_cpo
