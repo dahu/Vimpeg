@@ -47,7 +47,7 @@ function! s:NextSym()
 endfunction
 
 function s:SID()
-  return matchstr(expand('<sfile>'), '<SNR>\d\+_\zeSID$')
+  return matchstr(expand('<sfile>'), '<SNR>\zs\d\+\ze_SID$')
 endfun
 
 function s:callback(func, args) dict abort
@@ -205,9 +205,9 @@ endfunction
 function s:Expression_pmatch(input) dict abort "{{{3
   if self.debug && index(self.debug_ids, get(self, 'id', '')) > -1
     echom 'Adding breakpoint for "'.self.id.'"'
-    exec printf('breakadd func 5 %sExpression_pmatch', s:SID())
+    exec printf('breakadd func 6 %sExpression_pmatch', s:SID())
     " Remove the breakpoint until it's needed again.
-    exec printf('breakdel func 5 %sExpression_pmatch', s:SID())
+    exec printf('breakdel func 6 %sExpression_pmatch', s:SID())
   endif
   let save = a:input.pos
   call self.skip_white(a:input)
