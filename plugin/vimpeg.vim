@@ -6,7 +6,7 @@
 " License:	Vim License (see :help license)
 " Location:	plugin/vimpeg.vim
 
-if exists("g:loaded_vimpeg")
+if exists('g:loaded_vimpeg')
 "      \ || v:version < 700 || &compatible
   finish
 endif

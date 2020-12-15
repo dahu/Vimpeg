@@ -7,7 +7,7 @@
 " Location:	ftplugin/%Plugin_File%
 
 " Only do this when not done yet for this buffer
-if exists("b:did_ftplugin")
+if exists('b:did_ftplugin')
   finish
 endif
 
@@ -19,7 +19,7 @@ let s:save_cpo = &cpo
 set cpo&vim
 
 " Restore things when changing filetype.
-let b:undo_ftplugin = "sil! iunmap :| setl fo< com< ofu<"
+let b:undo_ftplugin = 'sil! iunmap :| setl fo< com< cms< ofu< fex<'
 
 " Configure the matchit plugin.
 let b:match_words = &matchpairs
@@ -30,6 +30,8 @@ let b:match_skip = 's:comment\|string\|character'
 " and insert the comment leader when hitting <CR> or using "o".
 setlocal fo-=t fo+=croql
 
+setlocal formatexpr=vimpeg#format()
+
 " Set completion with CTRL-X CTRL-O to autoloaded function.
 "if exists('&ofu')
 "  setlocal ofu=%FileType%complete#Complete
@@ -38,9 +40,9 @@ setlocal fo-=t fo+=croql
 " A little help to speed typing the mallet.
 if get(g:, 'vimpeg_align_mallet', 1) && exists(':Tabular')
   silent! ino <silent><buffer><expr> :
-        \ getline('.')[:col('.')] =~ '^\s*\h\w*\s*[^:]*$'
+        \ getline('.')[:col('.')] =~# '\m^\s*\h\w*\s*[^:]*$'
         \ && get(g:, 'vimpeg_align_mallet', 1)
-        \   ? "::= " . "\<C-O>:Tabularize/^[^:]*\\zs::=\<CR>\<C-O>f=\<Del>= "
+        \   ? '::= ' . "\<C-O>:Tabularize/^[^:]*\\zs::=\<CR>\<C-O>f=\<Del>= "
         \   : ':'
 endif
 
@@ -53,10 +55,8 @@ if !exists('*s:test')
   endfunction
 endif
 
-if !exists(':VimPEG')
-  command! -nargs=* -range=% -bang -bar -buffer VimPEG
-        \ <line1>,<line2>call vimpeg#peg#writefile(<bang>0, [<f-args>])
-endif
+command! -nargs=* -range=% -bang -bar -buffer VimPEG
+      \ <line1>,<line2>call vimpeg#peg#writefile(<bang>0, [<f-args>])
 
 if !exists(':VimPEGTest')
   command! -nargs=0 -range -buffer VimPEGTest <line1>;<line2>call s:test()
@@ -71,7 +71,8 @@ if !hasmapto('<Plug>VimPEGTest', 'nv')
 endif
 
 " Set 'comments'.
-"setlocal comments&
+setlocal comments=:;
+setlocal commentstring=;%s
 
 let &cpo = s:save_cpo
 unlet s:save_cpo

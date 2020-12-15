@@ -36,26 +36,37 @@
 .skip_white   = false
 .namespace    = 'vimpeg#peg'
 .parser_name  = 'parser'
-.root_element = 'line'
+.root_element = 'grammar'
 .ignore_case  = false
 .debug        = false
 .verbose      = 0
 
-line             ::= ( option | definition ) ? eol -> #line
+grammar          ::= options ? definitions eof -> #grammar
+definitions      ::= ( definition | eol ) + -> #definitions
 definition       ::= identifier mallet expression callback ? eol -> #definition
 expression       ::= sequence ( or sequence ) * -> #expression
 sequence         ::= prefix * -> #sequence
 prefix           ::= ( and | not ) ? suffix -> #prefix
 suffix           ::= primary ( question | star | plus ) ? -> #suffix
-primary          ::= identifier ! mallet | open expression close | regex -> #primary
+primary          ::= identifier ! mallet   \
+                   | open expression close \
+                   | regex -> #primary
 callback         ::= right_arrow '\%([a-zA-Z0-9_:.#]*\w\+\)\?' -> #callback
+options          ::= ( option | eol ) + -> #options
 option           ::= dot option_name equal option_value eol -> #option
 option_name      ::= identifier
-option_value     ::= squoted_string | squoted_string | number | boolean
+option_value     ::= dquoted_string \
+                   | squoted_string \
+                   | number         \
+                   | boolean
 identifier       ::= '\h\w*' space -> #identifier
-regex            ::= dquoted_string | squoted_string -> #regex
-dquoted_string   ::= dquote ( double_backslash | escaped_dquote | '[^"]' ) * dquote space -> #dquoted_string
-squoted_string   ::= squote ( "[^']" | double_squote ) * squote space -> #squoted_string
+regex            ::= dquoted_string \
+                   | squoted_string -> #regex
+dquoted_string   ::= dquote ( double_backslash \
+                   | escaped_dquote            \
+                   | '[^"]' ) * dquote space -> #dquoted_string
+squoted_string   ::= squote ( "[^']" | double_squote ) * squote space \
+                   -> #squoted_string
 escaped_dquote   ::= backslash dquote
 double_backslash ::= backslash backslash
 backslash        ::= '\'
@@ -66,7 +77,8 @@ squote           ::= "'"
 comment          ::= ';[^\n]*'
 right_arrow      ::= '->' space -> #first
 mallet           ::= '::=' space -> #first
-boolean          ::= true | false
+boolean          ::= true \
+                   | false
 true             ::= 'true\|on' space -> #true
 false            ::= 'false\|off' space -> #false
 equal            ::= '=' space -> #first
@@ -80,4 +92,5 @@ close            ::= ')' space -> #first
 open             ::= '(' space -> #first
 dot              ::= '\.'
 space            ::= '\%(\s\|\\\n\)*'
-eol              ::= comment ? '\n\|$' -> #eol
+eol              ::= comment ? '\n' -> #eol
+eof              ::= '$'
